@@ -157,7 +157,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
               <th>LOJISTIK_USD</th>
               <th>KARGO_USD</th>
               <th>KAR_MARJI (MARKUP)</th>
-              <th>KAPORA_USD</th>
+              <th>TAHSIL_EDILEN_USD</th>
               <th>TOPLAM_MALIYET_USD</th>
               <th>SATIS_FIYATI_USD</th>
               <th>NET_KAR_USD</th>

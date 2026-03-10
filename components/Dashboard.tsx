@@ -35,6 +35,8 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
     const confirmed = orders.filter(o => !o.processStatus || o.processStatus === ProcessStatus.ORDER);
     const confirmedRevenue = confirmed.reduce((sum, o) => sum + (o?.calculatedValues?.totalSalePrice || 0), 0);
     const confirmedProfit = confirmed.reduce((sum, o) => sum + (o?.calculatedValues?.profit || 0), 0);
+    const confirmedCollected = confirmed.reduce((sum, o) => sum + (o?.deposit || 0), 0);
+    const confirmedBalance = confirmed.reduce((sum, o) => sum + (o?.calculatedValues?.balanceDue || 0), 0);
     
     // Aktif Sevkiyat Sayısı (Siparişleşmiş ve Teslim Edilmemiş)
     const activeShipments = confirmed.filter(o => o.status !== OrderStatus.DELIVERED).length;
@@ -48,6 +50,8 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
     return {
       confirmedRevenue,
       confirmedProfit,
+      confirmedCollected,
+      confirmedBalance,
       activeShipments,
       quoteCount,
       approvalCount,
@@ -79,7 +83,7 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* Ana Finansal KPI'lar (Kesinleşmiş) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <StatCard 
           title="GERÇEKLEŞEN CİRO" 
           value={`$${stats.confirmedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`} 
@@ -95,10 +99,24 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
           subtitle="Kesinleşmiş Net Kazanç"
         />
         <StatCard 
+          title="TAHSİL EDİLEN" 
+          value={`$${(stats.confirmedCollected || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} 
+          icon={CheckCircle2} 
+          color="indigo"
+          subtitle="Toplam Alınan Ödemeler"
+        />
+        <StatCard 
+          title="KALAN ALACAK" 
+          value={`$${(stats.confirmedBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} 
+          icon={DollarSign} 
+          color="orange"
+          subtitle="Bekleyen Toplam Tahsilat"
+        />
+        <StatCard 
           title="AKTİF SEVKİYAT" 
           value={stats.activeShipments.toString()} 
           icon={Package} 
-          color="indigo"
+          color="slate"
           subtitle="Yoldaki Toplam Siparişler"
         />
       </div>
@@ -221,12 +239,16 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }: any) => {
     blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30',
     emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30',
     indigo: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/30',
+    orange: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-900/30',
+    slate: 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-800',
   };
 
   const iconColors: any = {
     blue: 'bg-blue-600',
     emerald: 'bg-emerald-600',
     indigo: 'bg-indigo-600',
+    orange: 'bg-orange-600',
+    slate: 'bg-slate-600',
   };
 
   return (

@@ -9,7 +9,8 @@ import {
   PieChart as PieChartIcon,
   Activity,
   Hourglass,
-  FileText
+  FileText,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -69,10 +70,10 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
       revenue: acc.revenue + (order.calculatedValues?.totalSalePrice || 0),
       profit: acc.profit + (order.calculatedValues?.profit || 0),
       cost: acc.cost + (order.calculatedValues?.unitCost || 0),
-      balanceDue: acc.balanceDue + (order.calculatedValues?.balanceDue || 0),
       collected: acc.collected + (order.deposit || 0),
+      balanceDue: acc.balanceDue + (order.calculatedValues?.balanceDue || 0),
       count: acc.count + 1
-    }), { revenue: 0, profit: 0, cost: 0, balanceDue: 0, collected: 0, count: 0 });
+    }), { revenue: 0, profit: 0, cost: 0, collected: 0, balanceDue: 0, count: 0 });
   }, [confirmedOrders]);
 
   const pipelineStats = useMemo(() => {
@@ -232,74 +233,74 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl text-white shadow-lg shadow-blue-100 dark:shadow-none">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <DollarSign className="w-6 h-6 text-white" />
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-3xl text-white shadow-lg shadow-blue-100 dark:shadow-none">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-white/20 rounded-lg">
+              <DollarSign className="w-5 h-5 text-white" />
             </div>
-            <span className="text-blue-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Gerçekleşen Ciro</span>
+            <span className="text-blue-100 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded">CİRO</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1">${stats.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
-          <p className="text-blue-100 text-xs opacity-80">{stats.count} Onaylı Sipariş</p>
+          <h3 className="text-xl lg:text-2xl font-bold mb-1">${stats.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-blue-100 text-[10px] opacity-80">{stats.count} Onaylı Sipariş</p>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-3xl text-white shadow-lg shadow-emerald-100 dark:shadow-none">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <TrendingUp className="w-6 h-6 text-white" />
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 rounded-3xl text-white shadow-lg shadow-emerald-100 dark:shadow-none">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-white/20 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <span className="text-emerald-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Net Kâr</span>
+            <span className="text-emerald-100 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded">NET KÂR</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1">+${stats.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
-          <p className="text-emerald-100 text-xs opacity-80">Ort. %{stats.cost > 0 ? ((stats.profit / stats.cost) * 100).toFixed(1) : 0} Marj</p>
+          <h3 className="text-xl lg:text-2xl font-bold mb-1">+${stats.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-emerald-100 text-[10px] opacity-80">Ort. %{stats.cost > 0 ? ((stats.profit / stats.cost) * 100).toFixed(1) : 0} Marj</p>
         </div>
 
-        <div className="bg-gradient-to-br from-violet-500 to-violet-600 p-6 rounded-3xl text-white shadow-lg shadow-violet-100 dark:shadow-none">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <Activity className="w-6 h-6 text-white" />
+        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-5 rounded-3xl text-white shadow-lg shadow-indigo-100 dark:shadow-none">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-white/20 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <span className="text-violet-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Tahsil Edilen</span>
+            <span className="text-indigo-100 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded">TAHSİL EDİLEN</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1">${stats.collected.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
-          <p className="text-violet-100 text-xs opacity-80">%{stats.revenue > 0 ? ((stats.collected / stats.revenue) * 100).toFixed(1) : 0} Tahsilat Oranı</p>
+          <h3 className="text-xl lg:text-2xl font-bold mb-1">${stats.collected.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-indigo-100 text-[10px] opacity-80">Toplam Ödemeler</p>
         </div>
 
-        <div className="bg-gradient-to-br from-rose-500 to-rose-600 p-6 rounded-3xl text-white shadow-lg shadow-rose-100 dark:shadow-none">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <Activity className="w-6 h-6 text-white" />
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-5 rounded-3xl text-white shadow-lg shadow-orange-100 dark:shadow-none">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-white/20 rounded-lg">
+              <Activity className="w-5 h-5 text-white" />
             </div>
-            <span className="text-rose-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Kalan Alacak</span>
+            <span className="text-orange-100 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded">KALAN ALACAK</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1">${stats.balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
-          <p className="text-rose-100 text-xs opacity-80">%{stats.revenue > 0 ? ((stats.balanceDue / stats.revenue) * 100).toFixed(1) : 0} Bekleyen Oran</p>
+          <h3 className="text-xl lg:text-2xl font-bold mb-1">${stats.balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-orange-100 text-[10px] opacity-80">Bekleyen Tahsilat</p>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-full -mr-10 -mt-10 z-0"></div>
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-full -mr-8 -mt-8 z-0"></div>
             <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                    <Hourglass className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
-                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">Hazırlık Süreci (Pipeline)</h3>
+                <div className="flex items-center gap-2 mb-2">
+                    <Hourglass className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                    <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Pipeline</h3>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 gap-2">
                     <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Teklif Aşamasında</p>
-                        <p className="text-xl font-bold text-slate-800 dark:text-white">{pipelineStats.quoteCount} Adet</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-500">Teklif</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-white">{pipelineStats.quoteCount}</p>
                     </div>
                     <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Onay Bekleyen</p>
-                        <p className="text-xl font-bold text-amber-600 dark:text-amber-500">{pipelineStats.approvalCount} Adet</p>
-                    </div>
-                    <div className="md:col-span-2 flex flex-col justify-end items-end">
-                         <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">Potansiyel Ciro Hacmi</p>
-                         <p className="text-2xl font-bold text-slate-800 dark:text-white">${pipelineStats.potentialRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-500">Onay</p>
+                        <p className="text-sm font-bold text-amber-600 dark:text-amber-500">{pipelineStats.approvalCount}</p>
                     </div>
                 </div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 relative z-10">
+                 <div className="flex justify-between items-center">
+                     <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400">Potansiyel</span>
+                     <span className="text-xs font-bold text-slate-800 dark:text-white">${pipelineStats.potentialRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                 </div>
             </div>
         </div>
       </div>
@@ -435,25 +436,19 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
                 <th className="px-6 py-4">Tarih</th>
                 <th className="px-6 py-4">Sipariş / Fatura</th>
                 <th className="px-6 py-4">Ciro</th>
-                <th className="px-6 py-4">Tahsilat</th>
-                <th className="px-6 py-4">Kalan</th>
-                <th className="px-6 py-4">Maliyet</th>
+                <th className="px-6 py-4">Tahsil Edilen</th>
+                <th className="px-6 py-4">Kalan Alacak</th>
                 <th className="px-6 py-4">Net Kâr</th>
-                <th className="px-6 py-4">Marj</th>
                 <th className="px-6 py-4">Durum</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {confirmedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">Bu dönem için kesinleşmiş sipariş bulunamadı.</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">Bu dönem için kesinleşmiş sipariş bulunamadı.</td>
                 </tr>
               ) : (
                 confirmedOrders.map((order) => {
-                   const markup = order.calculatedValues.unitCost > 0 
-                    ? (order.calculatedValues.profit / order.calculatedValues.unitCost) * 100 
-                    : 0;
-
                    return (
                     <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{order.date}</td>
@@ -462,15 +457,9 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
                         <div className="text-xs text-slate-400 dark:text-slate-500">#{order.invoiceNo}</div>
                       </td>
                       <td className="px-6 py-4 font-medium dark:text-slate-200">${order.calculatedValues.totalSalePrice.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-medium">${order.deposit.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-rose-600 dark:text-rose-400 font-medium">${order.calculatedValues.balanceDue.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">${order.calculatedValues.unitCost.toFixed(2)}</td>
+                      <td className="px-6 py-4 font-bold text-blue-600 dark:text-blue-400">${order.deposit.toFixed(2)}</td>
+                      <td className="px-6 py-4 font-bold text-orange-600 dark:text-orange-400">${order.calculatedValues.balanceDue.toFixed(2)}</td>
                       <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-500">+${order.calculatedValues.profit.toFixed(2)}</td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
-                          %{markup.toFixed(1)}
-                        </span>
-                      </td>
                       <td className="px-6 py-4">
                         <span className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
                           {order.status}
