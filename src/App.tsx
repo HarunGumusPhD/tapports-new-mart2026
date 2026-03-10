@@ -25,7 +25,7 @@ import { Order, OrderStatus } from './types';
 import Dashboard from './components/Dashboard';
 import OrderList from './components/OrderList';
 import FinancialCalculator from './components/FinancialCalculator';
-import ExcelIntegration from './components/ExcelIntegration';
+import ExcelIntegration from './components/Excel';
 import FinancialReport from './components/FinancialReport';
 import TrashBin from './components/TrashBin';
 import { calculateOrderValues } from './utils/financial';

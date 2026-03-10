@@ -4,8 +4,8 @@
   "description": "Akıllı Sipariş ve Tedarik Zinciri Yönetim Asistanı",
   "main": "server/index.js",
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "scripts": {
     "dev": "node server/index.js",
