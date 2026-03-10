@@ -38,8 +38,8 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         const tId = parseInt(newUser.tenantId);
-        if (isNaN(tId) || tId <= 0) {
-            alert('Lütfen geçerli ve 0\'dan büyük bir Tenant ID (Bayi No) giriniz. 0 Süper Admin\'e aittir.');
+        if (isNaN(tId) || tId <= 0 || tId === 9999) {
+            alert('Lütfen geçerli ve 0\'dan büyük bir Tenant ID (Bayi No) giriniz. 9999 Süper Admin\'e aittir.');
             return;
         }
         try {

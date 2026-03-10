@@ -79,10 +79,11 @@ const App: React.FC = () => {
         if (storedUser) {
             try {
                 const parsedUser = JSON.parse(storedUser);
-                // Stale session fix: silverciva must always be super_admin
+                // Stale session fix: silverciva must always be super_admin and tenantId 9999
                 const lowerName = parsedUser.username?.toLowerCase();
                 if (lowerName === 'silverciva' || parsedUser.username === 'SİLVERCİVA') {
                     parsedUser.role = 'super_admin';
+                    parsedUser.tenantId = 9999;
                     localStorage.setItem('rol_user_session', JSON.stringify(parsedUser));
                 }
                 setUser(parsedUser);
@@ -152,10 +153,11 @@ const App: React.FC = () => {
     try {
       const res = await api.login(loginData.username, loginData.password);
       if (res.success) {
-        // Stale session fix: silverciva must always be super_admin
+        // Stale session fix: silverciva must always be super_admin and tenantId 9999
         const lowerName = res.user.username?.toLowerCase();
         if (lowerName === 'silverciva' || res.user.username === 'SİLVERCİVA') {
             res.user.role = 'super_admin';
+            res.user.tenantId = 9999;
         }
         setUser(res.user);
         setIsAuthenticated(true);

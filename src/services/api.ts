@@ -17,7 +17,7 @@ const getAuthHeaders = (): Record<string, string> => {
         const headers = {
             'x-user-id': user.id?.toString() || '',
             'x-user-role': user.role || '',
-            'x-tenant-id': (tenantOverride !== null ? tenantOverride : (user.tenantId || 0)).toString()
+            'x-tenant-id': (tenantOverride !== null ? tenantOverride : (user.tenantId || 9999)).toString()
         };
         return headers;
     } catch (e) {

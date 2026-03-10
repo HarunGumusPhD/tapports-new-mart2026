@@ -90,10 +90,10 @@ const initDb = async () => {
       const [superUsers] = await db.query("SELECT COUNT(*) as count FROM users WHERE username = 'silverciva'");
       if (superUsers[0].count === 0) {
           const hash = await bcrypt.hash('qazXSW12!!', 10);
-          await db.query("INSERT INTO users (username, password, full_name, must_change_password, role, tenant_id) VALUES ('silverciva', ?, 'Süper Yönetici', 0, 'super_admin', 0)", [hash]);
+          await db.query("INSERT INTO users (username, password, full_name, must_change_password, role, tenant_id) VALUES ('silverciva', ?, 'Süper Yönetici', 0, 'super_admin', 9999)", [hash]);
       } else {
           // Mevcut kullanıcının rolünü super_admin olarak güncelle (Hostinger gibi ortamlarda senkronizasyon için)
-          await db.query("UPDATE users SET role = 'super_admin' WHERE username = 'silverciva'");
+          await db.query("UPDATE users SET role = 'super_admin', tenant_id = 9999 WHERE username = 'silverciva'");
       }
 
       const schemaPath = path.join(__dirname, 'schema.sql');
@@ -283,9 +283,9 @@ apiRouter.get('/orders', checkAuth, async (req, res) => {
     let sql = 'SELECT * FROM orders';
     let params = [];
     
-    // Süper admin ve tenantId 0 ise (tüm sistem) her şeyi görsün
+    // Süper admin ve tenantId 9999 ise (tüm sistem) her şeyi görsün
     // Değilse sadece kendi tenant'ını görsün
-    if (req.user.role !== 'super_admin' || req.user.tenantId !== 0) {
+    if (req.user.role !== 'super_admin' || req.user.tenantId !== 9999) {
         sql += ' WHERE tenant_id = ?';
         params.push(req.user.tenantId);
     }
