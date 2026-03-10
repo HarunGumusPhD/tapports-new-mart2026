@@ -403,6 +403,13 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                 filteredOrders.map(order => {
                   const isOrderActive = !order.processStatus || order.processStatus === ProcessStatus.ORDER;
                   
+                  // GECİKME HESAPLAMA (5 GÜNÜ GEÇEN TEKLİFLER)
+                  const today = new Date();
+                  const created = new Date(order.date);
+                  const diffTime = today.getTime() - created.getTime();
+                  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                  const isDelayed = order.processStatus === ProcessStatus.QUOTE && diffDays > 5;
+
                   // GÖRSEL SEÇİM MANTIĞI
                   const hasImage = order.images && order.images.length > 0;
                   const displayImage = hasImage 
@@ -414,7 +421,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                       <td className="px-6 py-4">
                         <div 
                             onClick={(e) => { e.stopPropagation(); onEditOrder(order); }}
-                            className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center justify-center"
+                            className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center justify-center relative"
                             title="Düzenlemek için tıklayın"
                         >
                             <img 
@@ -422,12 +429,19 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                                 alt="Order" 
                                 className={`w-full h-full ${hasImage ? 'object-cover' : 'object-contain p-2'}`}
                             />
+                            {/* GECİKME UYARISI (🚨) */}
+                            {isDelayed && (
+                                <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-lg animate-bounce z-10" title="5 gündür teklif aşamasında!">
+                                    <span className="text-lg">🚨</span>
+                                </div>
+                            )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 mb-1">
                             <p className="font-semibold text-slate-900 dark:text-white">{order.customerName}</p>
                             {getProcessStatusBadge(order.processStatus)}
+                            {isDelayed && <span className="animate-pulse" title="Gecikmiş Teklif!">🚨</span>}
                         </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <Store className="w-3 h-3 text-slate-400" />
