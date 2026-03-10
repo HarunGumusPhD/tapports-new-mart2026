@@ -23,8 +23,9 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
             setLoading(true);
             const data = await api.getUsers();
             setUsers(data);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            alert('Kullanıcılar getirilirken bir hata oluştu: ' + e.message);
         } finally {
             setLoading(false);
         }
