@@ -89,36 +89,6 @@ const initDb = async () => {
             }
           }
           console.log('✅ Veritabanı tabloları kontrol edildi.');
-
-          // --- EK KOLON KONTROLLERİ (MIGRATION) ---
-          try {
-              const [columns] = await db.query("SHOW COLUMNS FROM orders");
-              const columnNames = columns.map(c => c.Field);
-              
-              if (!columnNames.includes('description')) {
-                  console.log('➕ "description" kolonu ekleniyor...');
-                  await db.query("ALTER TABLE orders ADD COLUMN description TEXT AFTER images");
-              }
-              if (!columnNames.includes('process_status')) {
-                  console.log('➕ "process_status" kolonu ekleniyor...');
-                  await db.query("ALTER TABLE orders ADD COLUMN process_status VARCHAR(50) DEFAULT 'Siparişleşti' AFTER estimated_delivery_date");
-              }
-              if (!columnNames.includes('estimated_delivery_date')) {
-                  console.log('➕ "estimated_delivery_date" kolonu ekleniyor...');
-                  await db.query("ALTER TABLE orders ADD COLUMN estimated_delivery_date DATE AFTER date");
-              }
-              if (!columnNames.includes('images')) {
-                  console.log('➕ "images" kolonu ekleniyor...');
-                  await db.query("ALTER TABLE orders ADD COLUMN images TEXT AFTER commission_rate");
-              }
-              if (!columnNames.includes('is_deleted')) {
-                  console.log('➕ "is_deleted" kolonu ekleniyor...');
-                  await db.query("ALTER TABLE orders ADD COLUMN is_deleted TINYINT(1) DEFAULT 0 AFTER description");
-              }
-              console.log('✅ Kolon kontrolleri tamamlandı.');
-          } catch (migError) {
-              console.error('⚠️ Migrasyon hatası:', migError.message);
-          }
       }
     } catch (error) {
       console.error('❌ Şema yükleme hatası:', error);
@@ -237,15 +207,13 @@ apiRouter.get('/orders', async (req, res) => {
 
 apiRouter.post('/orders', async (req, res) => {
   const data = req.body;
-  console.log('📝 Yeni Sipariş Kaydı:', data.id, data.customerName);
   const imagesJson = JSON.stringify(data.images || []);
   const sql = `INSERT INTO orders (id, date, estimated_delivery_date, process_status, customer_name, supplier, product_model, quantity, invoice_no, buy_price, logistics_cost, local_shipping, deposit, status, profit_margin, commission_rate, description, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   try {
     await db.query(sql, [data.id, data.date, data.estimatedDeliveryDate, data.processStatus, data.customerName, data.supplier, data.productModel, data.quantity, data.invoiceNo, data.buyPrice, data.logisticsCost, data.localShipping, data.deposit, data.status, data.profitMargin, data.commissionRate, data.description, imagesJson]);
-    console.log('✅ Sipariş başarıyla oluşturuldu:', data.id);
     res.status(201).json({ message: 'Created', id: data.id });
   } catch (error) {
-    console.error('❌ Sipariş oluşturma hatası:', error);
+    console.error(error);
     res.status(500).json({ error: 'Create failed', details: error.message });
   }
 });
@@ -253,15 +221,13 @@ apiRouter.post('/orders', async (req, res) => {
 apiRouter.put('/orders/:id', async (req, res) => {
   const { id } = req.params;
   const data = req.body;
-  console.log('🔄 Sipariş Güncelleme:', id, data.customerName);
   const imagesJson = JSON.stringify(data.images || []);
   const sql = `UPDATE orders SET date=?, estimated_delivery_date=?, process_status=?, customer_name=?, supplier=?, product_model=?, quantity=?, invoice_no=?, buy_price=?, logistics_cost=?, local_shipping=?, deposit=?, status=?, profit_margin=?, commission_rate=?, description=?, images=? WHERE id=?`;
   try {
     await db.query(sql, [data.date, data.estimatedDeliveryDate, data.processStatus, data.customerName, data.supplier, data.productModel, data.quantity, data.invoiceNo, data.buyPrice, data.logisticsCost, data.localShipping, data.deposit, data.status, data.profitMargin, data.commissionRate, data.description, imagesJson, id]);
-    console.log('✅ Sipariş başarıyla güncellendi:', id);
     res.json({ message: 'Updated' });
   } catch (error) {
-    console.error('❌ Sipariş güncelleme hatası:', error);
+    console.error(error);
     res.status(500).json({ error: 'Update failed', details: error.message });
   }
 });
@@ -292,7 +258,7 @@ apiRouter.post('/upload', upload.single('image'), (req, res) => {
 
 apiRouter.delete('/orders/:id', async (req, res) => {
   try {
-    await db.query('DELETE FROM orders WHERE id = ?', [req.params.id]);
+    await db.query('UPDATE orders SET is_deleted = 1 WHERE id = ?', [req.params.id]);
     res.json({ message: 'Deleted' });
   } catch (error) {
     console.error(error);

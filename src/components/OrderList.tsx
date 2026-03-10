@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Order, OrderStatus, ProcessStatus } from '../types';
 import { Search, Filter, FileSpreadsheet, Trash2, Edit2, AlertCircle, Store, CheckCircle, Clock, X, Calendar, DollarSign, Users, Truck } from 'lucide-react';
+import DeliveryConfirmationModal from './DeliveryConfirmationModal';
 
 interface Props {
   orders: Order[];
@@ -38,6 +39,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
   });
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deliveryConfirmOrder, setDeliveryConfirmOrder] = useState<Order | null>(null);
 
   // Filtreler değiştiğinde LocalStorage'a kaydet
   useEffect(() => {
@@ -233,34 +235,19 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
       if (newStatus === OrderStatus.DELIVERED) {
           const balance = order.calculatedValues?.balanceDue || 0;
           if (balance > 0) {
-              const markAsPaid = window.confirm(`Sipariş 'Teslim Edildi' olarak işaretleniyor.\n\n$${balance.toLocaleString('en-US')} tutarındaki bakiyenin TAMAMI tahsil edildi mi?`);
-              
-              if (markAsPaid) {
-                  onCompleteOrder(order, true);
-              } else {
-                  const currentDeposit = order.deposit || 0;
-                  const totalSale = order.calculatedValues?.totalSalePrice || 0;
-                  const promptMsg = `Şu ana kadar toplam ne kadar tahsilat yapıldı? (USD)\n\nToplam Satış: $${totalSale.toLocaleString('en-US')}\nŞu anki Tahsilat: $${currentDeposit.toLocaleString('en-US')}\nKalan Bakiye: $${balance.toLocaleString('en-US')}`;
-                  
-                  const amountStr = window.prompt(promptMsg, currentDeposit.toString());
-                  
-                  if (amountStr !== null) {
-                      const amount = parseFloat(amountStr.replace(',', '.'));
-                      if (!isNaN(amount)) {
-                          onCompleteOrder(order, false, amount);
-                      } else {
-                          alert("Geçersiz tutar girildi.");
-                      }
-                  } else {
-                      // Prompt iptal edildi, sadece durumu güncelle
-                      onUpdateStatus(order.id, OrderStatus.DELIVERED);
-                  }
-              }
+              setDeliveryConfirmOrder(order);
           } else {
               onCompleteOrder(order, false);
           }
       } else {
           onUpdateStatus(order.id, newStatus);
+      }
+  };
+
+  const handleDeliveryConfirm = (isFullPayment: boolean, amount?: number) => {
+      if (deliveryConfirmOrder) {
+          onCompleteOrder(deliveryConfirmOrder, isFullPayment, amount);
+          setDeliveryConfirmOrder(null);
       }
   };
 
@@ -563,6 +550,18 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
           </table>
         </div>
       </div>
+
+      {deliveryConfirmOrder && (
+        <DeliveryConfirmationModal 
+          order={deliveryConfirmOrder}
+          isOpen={!!deliveryConfirmOrder}
+          onClose={() => {
+              onUpdateStatus(deliveryConfirmOrder.id, OrderStatus.DELIVERED);
+              setDeliveryConfirmOrder(null);
+          }}
+          onConfirm={handleDeliveryConfirm}
+        />
+      )}
     </div>
   );
 };
