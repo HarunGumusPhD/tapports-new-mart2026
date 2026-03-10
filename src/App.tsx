@@ -342,6 +342,24 @@ const App: React.FC = () => {
               </div>
             )}
 
+            <div className="flex justify-center">
+                <button 
+                    type="button"
+                    onClick={async () => {
+                        try {
+                            const res = await fetch('/api/test-connection');
+                            const data = await res.json();
+                            alert('API Durumu: ' + (data.success ? '✅ ÇALIŞIYOR' : '❌ HATA') + '\nMesaj: ' + data.message);
+                        } catch (e) {
+                            alert('API Bağlantı Hatası: Sunucuya ulaşılamıyor. (Hostinger ayarlarını kontrol edin)');
+                        }
+                    }}
+                    className="text-[10px] text-slate-400 hover:text-blue-500 transition-colors uppercase font-bold tracking-widest"
+                >
+                    API Bağlantısını Test Et
+                </button>
+            </div>
+
             <button type="submit" className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-xl shadow-blue-100 dark:shadow-none active:scale-95">
               Sisteme Giriş Yap
             </button>
