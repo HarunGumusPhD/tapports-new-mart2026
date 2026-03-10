@@ -1,42 +1,44 @@
 {
-  "name": "smart-supply-chain-assistant",
-  "private": true,
+  "name": "rol-scm-assistant",
   "version": "1.0.0",
-  "type": "module",
+  "description": "Akıllı Sipariş ve Tedarik Zinciri Yönetim Asistanı",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "dev": "node server/index.js",
+    "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "node server.ts"
+    "lint": "tsc --noEmit",
+    "server": "node server.js",
+    "start": "node server.js",
+    "postinstall": "npm run build",
+    "dev:full": "concurrently \"npm run server\" \"npm run dev\""
   },
   "dependencies": {
-    "@google/genai": "latest",
-    "axios": "^1.5.1",
-    "clsx": "^2.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "framer-motion": "^10.16.4",
-    "lucide-react": "^0.284.0",
+    "lucide-react": "^0.344.0",
+    "multer": "^2.1.1",
+    "mysql2": "^3.9.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0",
-    "tailwind-merge": "^1.14.0"
+    "recharts": "^2.12.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.18",
-    "@types/react": "^18.2.28",
-    "@types/react-dom": "^18.2.13",
-    "@typescript-eslint/eslint-plugin": "^8.57.0",
-    "@typescript-eslint/parser": "^8.57.0",
-    "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.3",
-    "tsx": "^4.0.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.0"
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "concurrently": "^8.2.2"
   }
 }
