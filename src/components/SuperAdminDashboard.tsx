@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { Users, Plus, Trash2, Shield, User as UserIcon, Calendar, Hash } from 'lucide-react';
+import { Users, Plus, Trash2, Shield, User as UserIcon, Calendar, Hash, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const SuperAdminDashboard: React.FC = () => {
+interface Props {
+    onViewTenant?: (tenantId: number, fullName: string) => void;
+}
+
+const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -141,12 +145,23 @@ const SuperAdminDashboard: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button 
-                                            onClick={() => handleDeleteUser(u.id)}
-                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {u.role !== 'super_admin' && onViewTenant && (
+                                                <button 
+                                                    onClick={() => onViewTenant(u.tenant_id, u.full_name)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-xl transition-all text-xs font-bold"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                    Görüntüle
+                                                </button>
+                                            )}
+                                            <button 
+                                                onClick={() => handleDeleteUser(u.id)}
+                                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

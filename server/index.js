@@ -237,13 +237,8 @@ apiRouter.post('/update-password', async (req, res) => {
 
 apiRouter.get('/orders', checkAuth, async (req, res) => {
   try {
-    let sql = 'SELECT * FROM orders';
-    let params = [];
-    
-    if (req.user.role !== 'super_admin') {
-        sql += ' WHERE tenant_id = ?';
-        params.push(req.user.tenantId);
-    }
+    let sql = 'SELECT * FROM orders WHERE tenant_id = ?';
+    let params = [req.user.tenantId];
     
     sql += ' ORDER BY created_at DESC';
     
@@ -279,7 +274,7 @@ apiRouter.get('/orders', checkAuth, async (req, res) => {
 
 apiRouter.post('/orders', checkAuth, async (req, res) => {
   const data = req.body;
-  const tenantId = req.user.role === 'super_admin' ? (data.tenantId || 0) : req.user.tenantId;
+  const tenantId = req.user.tenantId;
   const imagesJson = JSON.stringify(data.images || []);
   const sql = `INSERT INTO orders (id, date, estimated_delivery_date, process_status, customer_name, supplier, product_model, quantity, invoice_no, buy_price, logistics_cost, local_shipping, deposit, status, profit_margin, commission_rate, description, images, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   try {
@@ -296,13 +291,8 @@ apiRouter.put('/orders/:id', checkAuth, async (req, res) => {
   const data = req.body;
   const imagesJson = JSON.stringify(data.images || []);
   
-  let sql = `UPDATE orders SET date=?, estimated_delivery_date=?, process_status=?, customer_name=?, supplier=?, product_model=?, quantity=?, invoice_no=?, buy_price=?, logistics_cost=?, local_shipping=?, deposit=?, status=?, profit_margin=?, commission_rate=?, description=?, images=? WHERE id=?`;
-  let params = [data.date, data.estimatedDeliveryDate, data.processStatus, data.customerName, data.supplier, data.productModel, data.quantity, data.invoiceNo, data.buyPrice, data.logisticsCost, data.localShipping, data.deposit, data.status, data.profitMargin, data.commissionRate, data.description, imagesJson, id];
-  
-  if (req.user.role !== 'super_admin') {
-      sql += ' AND tenant_id = ?';
-      params.push(req.user.tenantId);
-  }
+  let sql = `UPDATE orders SET date=?, estimated_delivery_date=?, process_status=?, customer_name=?, supplier=?, product_model=?, quantity=?, invoice_no=?, buy_price=?, logistics_cost=?, local_shipping=?, deposit=?, status=?, profit_margin=?, commission_rate=?, description=?, images=? WHERE id=? AND tenant_id = ?`;
+  let params = [data.date, data.estimatedDeliveryDate, data.processStatus, data.customerName, data.supplier, data.productModel, data.quantity, data.invoiceNo, data.buyPrice, data.logisticsCost, data.localShipping, data.deposit, data.status, data.profitMargin, data.commissionRate, data.description, imagesJson, id, req.user.tenantId];
   
   try {
     await db.query(sql, params);
@@ -315,12 +305,8 @@ apiRouter.put('/orders/:id', checkAuth, async (req, res) => {
 
 apiRouter.post('/orders/:id/restore', checkAuth, async (req, res) => {
     try {
-        let sql = 'UPDATE orders SET is_deleted = 0 WHERE id = ?';
-        let params = [req.params.id];
-        if (req.user.role !== 'super_admin') {
-            sql += ' AND tenant_id = ?';
-            params.push(req.user.tenantId);
-        }
+        let sql = 'UPDATE orders SET is_deleted = 0 WHERE id = ? AND tenant_id = ?';
+        let params = [req.params.id, req.user.tenantId];
         await db.query(sql, params);
         res.json({ success: true });
     } catch (error) {
@@ -330,12 +316,8 @@ apiRouter.post('/orders/:id/restore', checkAuth, async (req, res) => {
 
 apiRouter.post('/orders/:id/hard-delete', checkAuth, async (req, res) => {
     try {
-        let sql = 'DELETE FROM orders WHERE id = ?';
-        let params = [req.params.id];
-        if (req.user.role !== 'super_admin') {
-            sql += ' AND tenant_id = ?';
-            params.push(req.user.tenantId);
-        }
+        let sql = 'DELETE FROM orders WHERE id = ? AND tenant_id = ?';
+        let params = [req.params.id, req.user.tenantId];
         await db.query(sql, params);
         res.json({ success: true });
     } catch (error) {
@@ -351,12 +333,8 @@ apiRouter.post('/upload', upload.single('image'), (req, res) => {
 
 apiRouter.delete('/orders/:id', checkAuth, async (req, res) => {
   try {
-    let sql = 'UPDATE orders SET is_deleted = 1 WHERE id = ?';
-    let params = [req.params.id];
-    if (req.user.role !== 'super_admin') {
-        sql += ' AND tenant_id = ?';
-        params.push(req.user.tenantId);
-    }
+    let sql = 'UPDATE orders SET is_deleted = 1 WHERE id = ? AND tenant_id = ?';
+    let params = [req.params.id, req.user.tenantId];
     await db.query(sql, params);
     res.json({ message: 'Deleted' });
   } catch (error) {
@@ -367,12 +345,8 @@ apiRouter.delete('/orders/:id', checkAuth, async (req, res) => {
 
 apiRouter.patch('/orders/:id/status', checkAuth, async (req, res) => {
   try {
-    let sql = 'UPDATE orders SET status = ? WHERE id = ?';
-    let params = [req.body.status, req.params.id];
-    if (req.user.role !== 'super_admin') {
-        sql += ' AND tenant_id = ?';
-        params.push(req.user.tenantId);
-    }
+    let sql = 'UPDATE orders SET status = ? WHERE id = ? AND tenant_id = ?';
+    let params = [req.body.status, req.params.id, req.user.tenantId];
     await db.query(sql, params);
     res.json({ message: 'Status Updated' });
   } catch (error) {

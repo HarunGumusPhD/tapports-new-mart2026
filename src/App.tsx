@@ -28,7 +28,7 @@ import FinancialReport from './components/FinancialReport';
 import TrashBin from './components/TrashBin';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import { calculateOrderValues } from './utils/financial';
-import { api } from './services/api';
+import { api, setTenantOverride } from './services/api';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'reports' | 'trash' | 'users'>('dashboard');
@@ -43,6 +43,8 @@ const App: React.FC = () => {
   const [dbStatus, setDbStatus] = useState<'connected' | 'disconnected'>('disconnected');
   const [loading, setLoading] = useState(false);
   const [dbInfo, setDbInfo] = useState<any>(null);
+  const [selectedTenantId, setSelectedTenantId] = useState<number | null>(null);
+  const [selectedTenantName, setSelectedTenantName] = useState<string | null>(null);
   
   // AUTH STATES
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -80,6 +82,9 @@ const App: React.FC = () => {
                 setUser(parsedUser);
                 setIsAuthenticated(true);
                 setShowLogin(false);
+                if (parsedUser.role === 'super_admin') {
+                    setActiveTab('users');
+                }
             } catch (e) {
                 localStorage.removeItem('rol_user_session');
             }
@@ -92,6 +97,7 @@ const App: React.FC = () => {
     if (!isAuthenticated) return;
     try {
       setLoading(true);
+      setTenantOverride(selectedTenantId);
       const data = await api.getOrders();
       const enrichedOrders = data.map((order: Order) => ({
         ...order,
@@ -116,7 +122,19 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) fetchOrders();
-  }, [isAuthenticated, fetchOrders]);
+  }, [isAuthenticated, fetchOrders, selectedTenantId]);
+
+  const handleViewTenant = (tenantId: number, fullName: string) => {
+    setSelectedTenantId(tenantId);
+    setSelectedTenantName(fullName);
+    setActiveTab('dashboard');
+  };
+
+  const handleExitView = () => {
+    setSelectedTenantId(null);
+    setSelectedTenantName(null);
+    setTenantOverride(null);
+  };
 
   // SİLİNMİŞ VE AKTİF SİPARİŞLERİ AYIR
   const activeOrders = useMemo(() => orders.filter(o => !o.isDeleted), [orders]);
@@ -131,6 +149,9 @@ const App: React.FC = () => {
         setUser(res.user);
         setIsAuthenticated(true);
         setShowLogin(false);
+        if (res.user.role === 'super_admin') {
+            setActiveTab('users');
+        }
         // Oturumu Kaydet
         localStorage.setItem('rol_user_session', JSON.stringify(res.user));
         
@@ -471,8 +492,21 @@ const App: React.FC = () => {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
-          <button className="lg:hidden p-2 text-slate-500 dark:text-slate-400" onClick={() => setIsSidebarOpen(true)}><Menu className="w-6 h-6" /></button>
-          <h1 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{activeTab}</h1>
+          <div className="flex items-center gap-4">
+            <button className="lg:hidden p-2 text-slate-500 dark:text-slate-400" onClick={() => setIsSidebarOpen(true)}><Menu className="w-6 h-6" /></button>
+            <div className="flex flex-col">
+                <h1 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{activeTab}</h1>
+                {selectedTenantName && (
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                        <ShieldCheck className="w-3 h-3" />
+                        Görüntülenen: {selectedTenantName}
+                        <button onClick={handleExitView} className="ml-1 text-slate-400 hover:text-red-500 transition-colors">
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+            </div>
+          </div>
           <button 
             onClick={() => { setEditingOrder(null); setIsCalculatorMode(false); setActiveTab('calc'); }}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-100 dark:shadow-none transition-all active:scale-95"
@@ -510,7 +544,7 @@ const App: React.FC = () => {
                    />
                )}
                {activeTab === 'users' && user?.role === 'super_admin' && (
-                 <SuperAdminDashboard />
+                 <SuperAdminDashboard onViewTenant={handleViewTenant} />
                )}
            </div>
            

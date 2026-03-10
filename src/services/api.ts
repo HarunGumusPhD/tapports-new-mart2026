@@ -3,6 +3,12 @@ import { Order, OrderStatus } from '../types';
 
 const API_ENDPOINT = '/api';
 
+let tenantOverride: number | null = null;
+
+export const setTenantOverride = (tenantId: number | null) => {
+    tenantOverride = tenantId;
+};
+
 const getAuthHeaders = (): Record<string, string> => {
     const storedUser = localStorage.getItem('rol_user_session');
     if (!storedUser) return {};
@@ -10,7 +16,7 @@ const getAuthHeaders = (): Record<string, string> => {
         const user = JSON.parse(storedUser);
         return {
             'x-user-role': user.role || '',
-            'x-tenant-id': (user.tenantId || 0).toString()
+            'x-tenant-id': (tenantOverride !== null ? tenantOverride : (user.tenantId || 0)).toString()
         };
     } catch (e) {
         return {};
