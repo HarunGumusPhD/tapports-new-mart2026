@@ -8,9 +8,10 @@ interface Props {
   onOrderComplete: (order: Order) => void;
   initialData: Order | null;
   isCalculatorMode?: boolean;
+  loading?: boolean;
 }
 
-const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, isCalculatorMode = false }) => {
+const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, isCalculatorMode = false, loading = false }) => {
   const [isManualProfit, setIsManualProfit] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -66,9 +67,10 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
       } else {
         setIsManualProfit(false);
       }
-    } else if (isCalculatorMode) {
+    } else {
       setFormData(initialFormState);
       setImages([]);
+      setIsManualProfit(false);
     }
   }, [initialData, isCalculatorMode]);
 
@@ -87,25 +89,34 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 handleSubmit tetiklendi, isCalculatorMode:', isCalculatorMode);
+    
     if (isCalculatorMode) return;
 
+    // Zorunlu alan kontrolü (HTML required'a ek olarak JS tarafında da kontrol)
     if (!formData.customerName || !formData.productModel || !formData.supplier) {
+      console.warn('⚠️ Eksik zorunlu alanlar:', { 
+        customerName: !!formData.customerName, 
+        productModel: !!formData.productModel, 
+        supplier: !!formData.supplier 
+      });
       alert('Lütfen zorunlu alanları (Müşteri, Tedarikçi, Ürün) doldurun.');
       return;
     }
 
+    console.log('📦 Sipariş verisi hazırlanıyor...');
     const orderData: Order = {
-      id: initialData ? initialData.id : Math.random().toString(36).substr(2, 9),
+      id: initialData ? initialData.id : `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       ...formData,
-      // Kaydederken sayısal değerlerin kesinlikle number olduğundan emin ol
-      buyPrice: Number(formData.buyPrice) || 0,
-      logisticsCost: Number(formData.logisticsCost) || 0,
-      localShipping: Number(formData.localShipping) || 0,
-      deposit: Number(formData.deposit) || 0,
+      buyPrice: Number(String(formData.buyPrice).replace(',', '.')) || 0,
+      logisticsCost: Number(String(formData.logisticsCost).replace(',', '.')) || 0,
+      localShipping: Number(String(formData.localShipping).replace(',', '.')) || 0,
+      deposit: Number(String(formData.deposit).replace(',', '.')) || 0,
       images: images,
       calculatedValues: calculations
     };
 
+    console.log('📤 onOrderComplete çağrılıyor...', orderData.id);
     onOrderComplete(orderData);
   };
 
@@ -271,11 +282,10 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Fatura No{isCalculatorMode ? '' : '*'}</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Fatura No</label>
                 <input 
                   type="text" 
-                  required={!isCalculatorMode}
-                  placeholder={isCalculatorMode ? "Opsiyonel" : ""}
+                  placeholder={isCalculatorMode ? "Opsiyonel" : "Örn: INV-123"}
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 outline-none transition-all dark:text-white"
                   value={formData.invoiceNo}
                   onChange={(e) => updateField('invoiceNo', e.target.value)}
@@ -424,9 +434,10 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
             ) : (
               <button 
                 type="submit"
-                className="w-full py-4 mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2"
+                disabled={loading}
+                className={`w-full py-4 mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
               >
-                <Save className="w-5 h-5" />
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 {initialData ? 'Değişiklikleri Kaydet' : 'Siparişi Kaydet'}
               </button>
             )}

@@ -69,8 +69,10 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
       revenue: acc.revenue + (order.calculatedValues?.totalSalePrice || 0),
       profit: acc.profit + (order.calculatedValues?.profit || 0),
       cost: acc.cost + (order.calculatedValues?.unitCost || 0),
+      balanceDue: acc.balanceDue + (order.calculatedValues?.balanceDue || 0),
+      collected: acc.collected + (order.deposit || 0),
       count: acc.count + 1
-    }), { revenue: 0, profit: 0, cost: 0, count: 0 });
+    }), { revenue: 0, profit: 0, cost: 0, balanceDue: 0, collected: 0, count: 0 });
   }, [confirmedOrders]);
 
   const pipelineStats = useMemo(() => {
@@ -140,6 +142,8 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
               <th>Fatura No</th>
               <th>Müşteri</th>
               <th>Satış Fiyatı (USD)</th>
+              <th>Tahsil Edilen (USD)</th>
+              <th>Kalan Alacak (USD)</th>
               <th>Toplam Maliyet (USD)</th>
               <th>Net Kâr (USD)</th>
               <th>Kâr Marjı (%)</th>
@@ -161,6 +165,8 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
           <td>${o.invoiceNo}</td>
           <td>${o.customerName}</td>
           <td class="num">${vals.totalSalePrice}</td>
+          <td class="num">${o.deposit}</td>
+          <td class="num">${vals.balanceDue}</td>
           <td class="num">${vals.unitCost}</td>
           <td class="num">${vals.profit}</td>
           <td class="num">%${markup.toFixed(2)}</td>
@@ -174,6 +180,8 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
         <tr class="total-row">
           <td colspan="3" align="right">GENEL TOPLAM</td>
           <td class="num">${stats.revenue}</td>
+          <td class="num">${stats.collected}</td>
+          <td class="num">${stats.balanceDue}</td>
           <td class="num">${stats.cost}</td>
           <td class="num">${stats.profit}</td>
           <td>-</td>
@@ -224,37 +232,61 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl text-white shadow-lg shadow-blue-100 dark:shadow-none md:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl text-white shadow-lg shadow-blue-100 dark:shadow-none">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2 bg-white/20 rounded-xl">
               <DollarSign className="w-6 h-6 text-white" />
             </div>
-            <span className="text-blue-100 text-xs font-bold bg-white/10 px-2 py-1 rounded">GERÇEKLEŞEN CİRO</span>
+            <span className="text-blue-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Gerçekleşen Ciro</span>
           </div>
-          <h3 className="text-2xl lg:text-3xl font-bold mb-1">${stats.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
-          <p className="text-blue-100 text-sm opacity-80">{stats.count} Onaylı Sipariş</p>
+          <h3 className="text-2xl font-bold mb-1">${stats.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-blue-100 text-xs opacity-80">{stats.count} Onaylı Sipariş</p>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-3xl text-white shadow-lg shadow-emerald-100 dark:shadow-none md:col-span-1">
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-3xl text-white shadow-lg shadow-emerald-100 dark:shadow-none">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2 bg-white/20 rounded-xl">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <span className="text-emerald-100 text-xs font-bold bg-white/10 px-2 py-1 rounded">NET KÂR</span>
+            <span className="text-emerald-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Net Kâr</span>
           </div>
-          <h3 className="text-2xl lg:text-3xl font-bold mb-1">+${stats.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
-          <p className="text-emerald-100 text-sm opacity-80">Ort. %{stats.cost > 0 ? ((stats.profit / stats.cost) * 100).toFixed(1) : 0} Marj</p>
+          <h3 className="text-2xl font-bold mb-1">+${stats.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-emerald-100 text-xs opacity-80">Ort. %{stats.cost > 0 ? ((stats.profit / stats.cost) * 100).toFixed(1) : 0} Marj</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm md:col-span-2 flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-gradient-to-br from-violet-500 to-violet-600 p-6 rounded-3xl text-white shadow-lg shadow-violet-100 dark:shadow-none">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-violet-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Tahsil Edilen</span>
+          </div>
+          <h3 className="text-2xl font-bold mb-1">${stats.collected.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-violet-100 text-xs opacity-80">%{stats.revenue > 0 ? ((stats.collected / stats.revenue) * 100).toFixed(1) : 0} Tahsilat Oranı</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-rose-500 to-rose-600 p-6 rounded-3xl text-white shadow-lg shadow-rose-100 dark:shadow-none">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-rose-100 text-[10px] font-bold bg-white/10 px-2 py-1 rounded uppercase">Kalan Alacak</span>
+          </div>
+          <h3 className="text-2xl font-bold mb-1">${stats.balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+          <p className="text-rose-100 text-xs opacity-80">%{stats.revenue > 0 ? ((stats.balanceDue / stats.revenue) * 100).toFixed(1) : 0} Bekleyen Oran</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-full -mr-10 -mt-10 z-0"></div>
             <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-4">
                     <Hourglass className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
                     <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">Hazırlık Süreci (Pipeline)</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div>
                         <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Teklif Aşamasında</p>
                         <p className="text-xl font-bold text-slate-800 dark:text-white">{pipelineStats.quoteCount} Adet</p>
@@ -263,13 +295,11 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
                         <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Onay Bekleyen</p>
                         <p className="text-xl font-bold text-amber-600 dark:text-amber-500">{pipelineStats.approvalCount} Adet</p>
                     </div>
+                    <div className="md:col-span-2 flex flex-col justify-end items-end">
+                         <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-tighter">Potansiyel Ciro Hacmi</p>
+                         <p className="text-2xl font-bold text-slate-800 dark:text-white">${pipelineStats.potentialRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                    </div>
                 </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 relative z-10">
-                 <div className="flex justify-between items-center">
-                     <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Potansiyel Ciro Hacmi</span>
-                     <span className="text-lg font-bold text-slate-800 dark:text-white">${pipelineStats.potentialRevenue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
-                 </div>
             </div>
         </div>
       </div>
@@ -405,6 +435,8 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
                 <th className="px-6 py-4">Tarih</th>
                 <th className="px-6 py-4">Sipariş / Fatura</th>
                 <th className="px-6 py-4">Ciro</th>
+                <th className="px-6 py-4">Tahsilat</th>
+                <th className="px-6 py-4">Kalan</th>
                 <th className="px-6 py-4">Maliyet</th>
                 <th className="px-6 py-4">Net Kâr</th>
                 <th className="px-6 py-4">Marj</th>
@@ -414,7 +446,7 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {confirmedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">Bu dönem için kesinleşmiş sipariş bulunamadı.</td>
+                  <td colSpan={9} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">Bu dönem için kesinleşmiş sipariş bulunamadı.</td>
                 </tr>
               ) : (
                 confirmedOrders.map((order) => {
@@ -430,6 +462,8 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
                         <div className="text-xs text-slate-400 dark:text-slate-500">#{order.invoiceNo}</div>
                       </td>
                       <td className="px-6 py-4 font-medium dark:text-slate-200">${order.calculatedValues.totalSalePrice.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-medium">${order.deposit.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-rose-600 dark:text-rose-400 font-medium">${order.calculatedValues.balanceDue.toFixed(2)}</td>
                       <td className="px-6 py-4 text-slate-500 dark:text-slate-400">${order.calculatedValues.unitCost.toFixed(2)}</td>
                       <td className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-500">+${order.calculatedValues.profit.toFixed(2)}</td>
                       <td className="px-6 py-4">

@@ -93,7 +93,9 @@ const App: React.FC = () => {
     if (!isAuthenticated) return;
     try {
       setLoading(true);
+      console.log('🔄 Siparişler çekiliyor...');
       const data = await api.getOrders();
+      console.log(`✅ ${data.length} sipariş alındı.`);
       const enrichedOrders = data.map(order => ({
         ...order,
         calculatedValues: calculateOrderValues(
@@ -174,17 +176,22 @@ const App: React.FC = () => {
   const handleSaveOrder = async (order: Order) => {
     try {
       setLoading(true);
+      console.log('💾 Sipariş kaydediliyor:', order);
       if (editingOrder) {
         await api.updateOrder(order);
+        console.log('✅ Sipariş güncellendi');
       } else {
         await api.createOrder(order);
+        console.log('✅ Yeni sipariş oluşturuldu');
       }
       setEditingOrder(null);
       await fetchOrders();
       setActiveTab('orders');
-    } catch (e) {
-      console.error(e);
-      alert('İşlem sırasında bir hata oluştu.');
+      // Başarı bildirimi (Opsiyonel ama kullanıcı için iyi olur)
+      // alert('Sipariş başarıyla kaydedildi.'); 
+    } catch (e: any) {
+      console.error('❌ Kayıt hatası:', e);
+      alert('İşlem sırasında bir hata oluştu: ' + (e.message || 'Bilinmeyen hata'));
     } finally {
       setLoading(false);
     }
@@ -380,7 +387,16 @@ const App: React.FC = () => {
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => { setActiveTab(item.id as any); setIsSidebarOpen(false); }}
+                onClick={() => { 
+                  setActiveTab(item.id as any); 
+                  setIsSidebarOpen(false); 
+                  if (item.id === 'calc') {
+                    setIsCalculatorMode(true);
+                    setEditingOrder(null);
+                  } else {
+                    setIsCalculatorMode(false);
+                  }
+                }}
                 className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all ${
                   activeTab === item.id 
                     ? 'bg-blue-600 text-white font-bold shadow-xl shadow-blue-100 dark:shadow-none' 
@@ -478,6 +494,7 @@ const App: React.FC = () => {
                    onOrderComplete={handleSaveOrder} 
                    initialData={editingOrder} 
                    isCalculatorMode={isCalculatorMode} 
+                   loading={loading}
                  />
                )}
                {activeTab === 'reports' && <FinancialReport orders={activeOrders} />}

@@ -74,39 +74,51 @@ export const api = {
 
   createOrder: async (order: Order): Promise<void> => {
     const { calculatedValues, ...orderData } = order;
-    await fetch(`${API_ENDPOINT}/orders`, {
+    const response = await fetch(`${API_ENDPOINT}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Sipariş oluşturulamadı');
+    }
   },
 
   updateOrder: async (order: Order): Promise<void> => {
     const { calculatedValues, ...orderData } = order;
-    await fetch(`${API_ENDPOINT}/orders/${order.id}`, {
+    const response = await fetch(`${API_ENDPOINT}/orders/${order.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Sipariş güncellenemedi');
+    }
   },
 
   deleteOrder: async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}`, { method: 'DELETE' });
+    const response = await fetch(`${API_ENDPOINT}/orders/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Silme işlemi başarısız');
   },
 
   restoreOrder: async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}/restore`, { method: 'POST' });
+    const response = await fetch(`${API_ENDPOINT}/orders/${id}/restore`, { method: 'POST' });
+    if (!response.ok) throw new Error('Geri yükleme başarısız');
   },
 
   hardDeleteOrder: async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}/hard-delete`, { method: 'POST' });
+    const response = await fetch(`${API_ENDPOINT}/orders/${id}/hard-delete`, { method: 'POST' });
+    if (!response.ok) throw new Error('Kalıcı silme başarısız');
   },
 
   updateStatus: async (id: string, status: OrderStatus): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}/status`, {
+    const response = await fetch(`${API_ENDPOINT}/orders/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
+    if (!response.ok) throw new Error('Durum güncellenemedi');
   }
 };
