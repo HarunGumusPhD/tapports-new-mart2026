@@ -79,6 +79,10 @@ const App: React.FC = () => {
         if (storedUser) {
             try {
                 const parsedUser = JSON.parse(storedUser);
+                // Stale session fix: silverciva must always be super_admin
+                if (parsedUser.username === 'silverciva') {
+                    parsedUser.role = 'super_admin';
+                }
                 setUser(parsedUser);
                 setIsAuthenticated(true);
                 setShowLogin(false);
@@ -146,6 +150,10 @@ const App: React.FC = () => {
     try {
       const res = await api.login(loginData.username, loginData.password);
       if (res.success) {
+        // Stale session fix: silverciva must always be super_admin
+        if (res.user.username === 'silverciva') {
+            res.user.role = 'super_admin';
+        }
         setUser(res.user);
         setIsAuthenticated(true);
         setShowLogin(false);

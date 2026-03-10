@@ -209,13 +209,16 @@ apiRouter.post('/login', async (req, res) => {
         const isLegacyAdmin = username === 'admin' && password === 'admin';
 
         if (isMatch || isLegacyAdmin) {
+            // Hostinger/Stale DB fix: silverciva must always be super_admin
+            const userRole = user.username === 'silverciva' ? 'super_admin' : user.role;
+            
             res.json({
                 success: true,
                 user: {
                     id: user.id,
                     username: user.username,
                     fullName: user.full_name,
-                    role: user.role,
+                    role: userRole,
                     tenantId: user.tenant_id,
                     mustChangePassword: !!user.must_change_password
                 }
