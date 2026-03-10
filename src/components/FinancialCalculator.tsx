@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { OrderStatus, Order, CommissionRate, ProcessStatus } from '@/types';
-import { calculateOrderValues } from '@/utils/financial';
+import { OrderStatus, Order, CommissionRate, ProcessStatus } from '../types';
+import { calculateOrderValues } from '../utils/financial';
 import { Calculator, Save, DollarSign, Hash, Store, RotateCcw, Calendar, FileClock, Upload, Image as ImageIcon, X, Loader2, ZoomIn } from 'lucide-react';
-import { api } from '@/services/api';
+import { api } from '../services/api';
 
 interface Props {
   onOrderComplete: (order: Order) => void;

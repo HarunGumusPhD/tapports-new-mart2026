@@ -1,5 +1,5 @@
 
-import { Order, OrderStatus } from '@/types';
+import { Order, OrderStatus } from '../types';
 
 const API_ENDPOINT = '/api';
 

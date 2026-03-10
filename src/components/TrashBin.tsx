@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Order, ProcessStatus } from '@/types';
+import { Order, ProcessStatus } from '../types';
 import { Search, RotateCcw, Trash2, AlertTriangle, AlertOctagon } from 'lucide-react';
 
 interface Props {

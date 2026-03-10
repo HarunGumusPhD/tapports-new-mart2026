@@ -1,5 +1,5 @@
 
-import { CalculatedValues, CommissionRate } from '@/types';
+import { CalculatedValues, CommissionRate } from '../types';
 
 export const calculateOrderValues = (
   buyPrice: number,

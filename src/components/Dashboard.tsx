@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Order, ProcessStatus, OrderStatus } from '@/types';
+import { Order, ProcessStatus, OrderStatus } from '../types';
 import { 
   Wallet, 
   TrendingUp, 

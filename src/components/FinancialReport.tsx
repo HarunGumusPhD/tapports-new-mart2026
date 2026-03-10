@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Order, ProcessStatus } from '@/types';
+import { Order, ProcessStatus } from '../types';
 import { 
   FileSpreadsheet, 
   Calendar, 

@@ -21,15 +21,15 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import { Order, OrderStatus } from '@/types';
-import Dashboard from '@/components/Dashboard';
-import OrderList from '@/components/OrderList';
-import FinancialCalculator from '@/components/FinancialCalculator';
-import ExcelIntegration from '@/components/ExcelIntegration';
-import FinancialReport from '@/components/FinancialReport';
-import TrashBin from '@/components/TrashBin';
-import { calculateOrderValues } from '@/utils/financial';
-import { api } from '@/services/api';
+import { Order, OrderStatus } from './types';
+import Dashboard from './components/Dashboard';
+import OrderList from './components/OrderList';
+import FinancialCalculator from './components/FinancialCalculator';
+import ExcelIntegration from './components/ExcelIntegration';
+import FinancialReport from './components/FinancialReport';
+import TrashBin from './components/TrashBin';
+import { calculateOrderValues } from './utils/financial';
+import { api } from './services/api';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'excel' | 'reports' | 'trash'>('dashboard');
