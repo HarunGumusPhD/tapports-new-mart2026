@@ -30,6 +30,8 @@ export const api = {
     const response = await fetch(`${API_ENDPOINT}/db-info`);
     return response.json();
   },
+  
+  getAuthHeaders: (): Record<string, string> => getAuthHeaders(),
 
   login: async (username: string, password: string): Promise<any> => {
     const response = await fetch(`${API_ENDPOINT}/login`, {
@@ -154,8 +156,10 @@ export const api = {
 
   // Kullanıcı Yönetimi
   getUsers: async (): Promise<any[]> => {
+      const headers = getAuthHeaders();
+      console.log('getUsers Headers:', headers);
       const response = await fetch(`${API_ENDPOINT}/admin/users`, {
-          headers: getAuthHeaders()
+          headers: headers
       });
       if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
@@ -165,12 +169,15 @@ export const api = {
   },
 
   createUser: async (userData: any): Promise<void> => {
+      const headers = { 
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+      };
+      console.log('createUser Headers:', headers);
+      console.log('createUser Data:', userData);
       const response = await fetch(`${API_ENDPOINT}/admin/users`, {
           method: 'POST',
-          headers: { 
-              'Content-Type': 'application/json',
-              ...getAuthHeaders()
-          },
+          headers: headers,
           body: JSON.stringify(userData)
       });
       if (!response.ok) {
@@ -180,9 +187,11 @@ export const api = {
   },
 
   deleteUser: async (id: number): Promise<void> => {
+      const headers = getAuthHeaders();
+      console.log('deleteUser Headers:', headers);
       const response = await fetch(`${API_ENDPOINT}/admin/users/${id}`, {
           method: 'DELETE',
-          headers: getAuthHeaders()
+          headers: headers
       });
       if (!response.ok) throw new Error('Kullanıcı silinemedi');
   }

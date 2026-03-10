@@ -101,7 +101,10 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
       });
   }, [orders, filters]);
 
-  const getRowStyle = (status: string) => {
+  const getRowStyle = (status: string, processStatus?: string) => {
+    if (processStatus === ProcessStatus.CANCELED) {
+        return 'bg-red-50/30 hover:bg-red-50/50 border-l-4 border-l-red-500 opacity-75';
+    }
     switch (status) {
       case OrderStatus.DELIVERED:
         return 'bg-emerald-50/70 hover:bg-emerald-100/80 border-l-4 border-l-emerald-500';
@@ -121,6 +124,8 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
               return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-pink-100 text-pink-700 border border-pink-200 uppercase tracking-wide">TEKLİF</span>;
           case ProcessStatus.APPROVAL:
               return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wide">ONAY BEKLENİYOR</span>;
+          case ProcessStatus.CANCELED:
+              return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 uppercase tracking-wide">İPTAL EDİLDİ</span>;
           default:
               return null;
       }
@@ -384,6 +389,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                           <option value={ProcessStatus.APPROVAL}>Onay Bekleyenler</option>
                           <option value={ProcessStatus.QUOTE}>Teklifler</option>
                           <option value={ProcessStatus.ORDER}>Onaylananlar (Siparişler)</option>
+                          <option value={ProcessStatus.CANCELED}>İptal Edilenler</option>
                       </select>
                   </div>
               </div>
@@ -433,7 +439,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                     : 'https://tapports.com/wp-content/uploads/2019/10/azazaz.png';
 
                   return (
-                    <tr key={order.id} className={`transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0 ${getRowStyle(order.status)}`}>
+                    <tr key={order.id} className={`transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0 ${getRowStyle(order.status, order.processStatus)}`}>
                       <td className="px-6 py-4">
                         <div 
                             onClick={(e) => { e.stopPropagation(); onEditOrder(order); }}

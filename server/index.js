@@ -66,8 +66,12 @@ const initDb = async () => {
           // Sütun varsa tipini güncelle (Eski VARCHAR ise ENUM yap)
           try { await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('super_admin', 'admin') DEFAULT 'admin'"); } catch(e2) {}
       }
-      try { await db.query("ALTER TABLE users ADD COLUMN tenant_id INT DEFAULT 0"); } catch(e) {}
-      try { await db.query("ALTER TABLE orders ADD COLUMN tenant_id INT DEFAULT 0"); } catch(e) {}
+      try { await db.query("ALTER TABLE users ADD COLUMN tenant_id INT DEFAULT 0"); } catch(e) {
+          if (e.code !== 'ER_DUP_FIELDNAME') console.log('Note: tenant_id column might already exist or other error:', e.message);
+      }
+      try { await db.query("ALTER TABLE orders ADD COLUMN tenant_id INT DEFAULT 0"); } catch(e) {
+          if (e.code !== 'ER_DUP_FIELDNAME') console.log('Note: tenant_id column might already exist or other error:', e.message);
+      }
       try { await db.query("CREATE INDEX idx_orders_tenant ON orders(tenant_id)"); } catch(e) {}
 
       await db.query(`
@@ -124,18 +128,28 @@ const initDb = async () => {
 
 // --- AUTH MIDDLEWARE ---
 const checkAuth = async (req, res, next) => {
-    const role = req.headers['x-user-role'];
+    console.log('Incoming Headers:', req.headers);
+    const roleHeader = req.headers['x-user-role'];
     const tenantIdHeader = parseInt(req.headers['x-tenant-id']);
     const userId = req.headers['x-user-id'];
     
-    if (!role || !userId) return res.status(401).json({ error: 'Yetkisiz erişim' });
+    console.log('Auth Attempt with userId:', userId);
+    
+    if (!userId) {
+        console.log('Auth Failed: No userId in headers');
+        return res.status(401).json({ error: 'Yetkisiz erişim (No User ID)' });
+    }
     
     try {
         // Veritabanından kullanıcıyı doğrula
         const [users] = await db.query("SELECT username, role, tenant_id FROM users WHERE id = ?", [userId]);
-        if (users.length === 0) return res.status(401).json({ error: 'Geçersiz kullanıcı' });
+        if (users.length === 0) {
+            console.log('Auth Failed: User not found in DB', { userId });
+            return res.status(401).json({ error: 'Geçersiz kullanıcı' });
+        }
         
         const dbUser = users[0];
+        console.log('Auth Check:', { userId, username: dbUser.username, role: dbUser.role, tenantId: dbUser.tenant_id });
         
         // Hostinger/Stale DB fix: silverciva must always be super_admin
         const lowerName = dbUser.username?.toLowerCase();
@@ -154,6 +168,7 @@ const checkAuth = async (req, res, next) => {
             userId: userId,
             username: dbUser.username
         };
+        console.log('Auth Success:', req.user);
         next();
     } catch (e) {
         console.error('Auth Middleware Error:', e);
@@ -167,9 +182,14 @@ app.use('/api', apiRouter);
 
 // Kullanıcı Yönetimi (Sadece Süper Admin)
 apiRouter.get('/admin/users', checkAuth, async (req, res) => {
-    if (req.user.role?.toLowerCase() !== 'super_admin') return res.status(403).json({ error: 'Erişim engellendi' });
+    console.log('Admin Users Fetch Request by:', req.user);
+    if (req.user.role?.toLowerCase() !== 'super_admin') {
+        console.log('Admin Users Fetch Denied: Not super_admin', { user: req.user });
+        return res.status(403).json({ error: 'Erişim engellendi' });
+    }
     try {
         const [rows] = await db.query("SELECT id, username, full_name, role, tenant_id, created_at FROM users ORDER BY created_at DESC");
+        console.log(`Admin Users Fetched: Found ${rows.length} users`);
         res.json(rows);
     } catch (error) {
         console.error('Error fetching admin users:', error);
@@ -178,14 +198,21 @@ apiRouter.get('/admin/users', checkAuth, async (req, res) => {
 });
 
 apiRouter.post('/admin/users', checkAuth, async (req, res) => {
-    if (req.user.role?.toLowerCase() !== 'super_admin') return res.status(403).json({ error: 'Erişim engellendi' });
+    console.log('Admin User Creation Request by:', req.user);
+    if (req.user.role?.toLowerCase() !== 'super_admin') {
+        console.log('Admin User Creation Denied: Not super_admin', { user: req.user });
+        return res.status(403).json({ error: 'Erişim engellendi' });
+    }
     const { username, password, fullName, tenantId } = req.body;
+    console.log('Attempting to create user:', { username, fullName, tenantId });
     try {
         const hash = await bcrypt.hash(password, 10);
         await db.query("INSERT INTO users (username, password, full_name, role, tenant_id, must_change_password) VALUES (?, ?, ?, 'admin', ?, 1)", 
             [username, hash, fullName, tenantId]);
+        console.log('User created successfully:', username);
         res.status(201).json({ success: true });
     } catch (error) {
+        console.error('User creation failed:', error);
         res.status(500).json({ error: 'Kullanıcı oluşturulamadı', details: error.message });
     }
 });
@@ -204,6 +231,7 @@ apiRouter.delete('/admin/users/:id', checkAuth, async (req, res) => {
 apiRouter.get('/health', async (req, res) => {
   try {
     await db.query('SELECT 1');
+    console.log('Health Check: OK');
     res.status(200).json({ status: 'ok', message: 'Connected', timestamp: Date.now() });
   } catch (error) {
     console.error("Health Check Failed:", error.message);
@@ -241,7 +269,9 @@ apiRouter.post('/login', async (req, res) => {
             // Hostinger/Stale DB fix: silverciva must always be super_admin
             const lowerUser = user.username.toLowerCase();
             const userRole = (lowerUser === 'silverciva' || user.username === 'SİLVERCİVA') ? 'super_admin' : user.role;
-            console.log('User logged in:', { username: user.username, assignedRole: userRole });
+            const finalTenantId = (userRole === 'super_admin') ? 9999 : user.tenant_id;
+            
+            console.log('User logged in:', { username: user.username, assignedRole: userRole, tenantId: finalTenantId });
             
             res.json({
                 success: true,
@@ -250,7 +280,7 @@ apiRouter.post('/login', async (req, res) => {
                     username: user.username,
                     fullName: user.full_name,
                     role: userRole,
-                    tenantId: user.tenant_id,
+                    tenantId: finalTenantId,
                     mustChangePassword: !!user.must_change_password
                 }
             });

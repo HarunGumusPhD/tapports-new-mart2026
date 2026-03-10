@@ -22,9 +22,10 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
         try {
             setLoading(true);
             const data = await api.getUsers();
+            console.log('Users fetched successfully:', data);
             setUsers(data);
         } catch (e: any) {
-            console.error(e);
+            console.error('Fetch Users Error:', e);
             alert('Kullanıcılar getirilirken bir hata oluştu: ' + e.message);
         } finally {
             setLoading(false);
@@ -43,14 +44,17 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
             return;
         }
         try {
+            console.log('Creating user...', { ...newUser, tenantId: tId });
             await api.createUser({
                 ...newUser,
                 tenantId: tId
             });
+            console.log('User created successfully');
             setShowAddModal(false);
             setNewUser({ username: '', password: '', fullName: '', tenantId: '' });
             fetchUsers();
         } catch (e: any) {
+            console.error('Create User Error:', e);
             alert('Kullanıcı oluşturulamadı: ' + e.message);
         }
     };

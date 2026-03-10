@@ -11,7 +11,8 @@ export enum OrderStatus {
 export enum ProcessStatus {
   QUOTE = 'Teklif Verilecek',
   APPROVAL = 'Onay Bekleniyor',
-  ORDER = 'Siparişleşti'
+  ORDER = 'Siparişleşti',
+  CANCELED = 'İptal Edildi'
 }
 
 export enum UserRole {

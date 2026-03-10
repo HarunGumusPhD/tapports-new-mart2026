@@ -86,6 +86,7 @@ const App: React.FC = () => {
                     parsedUser.tenantId = 9999;
                     localStorage.setItem('rol_user_session', JSON.stringify(parsedUser));
                 }
+                console.log('App Init User:', parsedUser);
                 setUser(parsedUser);
                 setIsAuthenticated(true);
                 setShowLogin(false);
@@ -153,6 +154,7 @@ const App: React.FC = () => {
     try {
       const res = await api.login(loginData.username, loginData.password);
       if (res.success) {
+        console.log('Login Success Response:', res.user);
         // Stale session fix: silverciva must always be super_admin and tenantId 9999
         const lowerName = res.user.username?.toLowerCase();
         if (lowerName === 'silverciva' || res.user.username === 'SİLVERCİVA') {

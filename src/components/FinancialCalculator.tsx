@@ -211,16 +211,18 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
                          <FileClock className="w-4 h-4" />
                          Sipariş Süreç Durumu
                      </label>
-                     <div className="grid grid-cols-3 gap-2">
-                         {[ProcessStatus.QUOTE, ProcessStatus.APPROVAL, ProcessStatus.ORDER].map((status) => (
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                         {[ProcessStatus.QUOTE, ProcessStatus.APPROVAL, ProcessStatus.ORDER, ProcessStatus.CANCELED].map((status) => (
                              <button
                                 type="button"
                                 key={status}
                                 onClick={() => updateField('processStatus', status)}
-                                className={`text-xs py-2 px-1 rounded-lg font-semibold transition-all ${
+                                className={`text-[10px] md:text-xs py-2 px-1 rounded-lg font-semibold transition-all ${
                                     formData.processStatus === status 
-                                    ? 'bg-indigo-600 text-white shadow-md' 
-                                    : 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'
+                                    ? (status === ProcessStatus.CANCELED ? 'bg-red-600 text-white shadow-md' : 'bg-indigo-600 text-white shadow-md')
+                                    : (status === ProcessStatus.CANCELED 
+                                        ? 'bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                        : 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/30')
                                 }`}
                              >
                                  {status}
