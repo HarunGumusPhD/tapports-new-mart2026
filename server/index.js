@@ -59,7 +59,13 @@ const initDb = async () => {
       `);
 
       // Mevcut tabloları güncelle (Eğer varsa)
-      try { await db.query("ALTER TABLE users ADD COLUMN role ENUM('super_admin', 'admin') DEFAULT 'admin'"); } catch(e) {}
+      try { 
+          // Sütun yoksa ekle
+          await db.query("ALTER TABLE users ADD COLUMN role ENUM('super_admin', 'admin') DEFAULT 'admin'"); 
+      } catch(e) {
+          // Sütun varsa tipini güncelle (Eski VARCHAR ise ENUM yap)
+          try { await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('super_admin', 'admin') DEFAULT 'admin'"); } catch(e2) {}
+      }
       try { await db.query("ALTER TABLE users ADD COLUMN tenant_id INT DEFAULT 0"); } catch(e) {}
       try { await db.query("ALTER TABLE orders ADD COLUMN tenant_id INT DEFAULT 0"); } catch(e) {}
       try { await db.query("CREATE INDEX idx_orders_tenant ON orders(tenant_id)"); } catch(e) {}
@@ -80,11 +86,14 @@ const initDb = async () => {
           await db.query("INSERT INTO users (username, password, full_name, must_change_password, role, tenant_id) VALUES ('admin', ?, 'Sistem Yöneticisi', 1, 'admin', 1)", [hash]);
       }
 
-      // Süper Admin kullanıcısı yoksa ekle
+      // Süper Admin kullanıcısı yoksa ekle, varsa rolünü zorla güncelle
       const [superUsers] = await db.query("SELECT COUNT(*) as count FROM users WHERE username = 'silverciva'");
       if (superUsers[0].count === 0) {
           const hash = await bcrypt.hash('qazXSW12!!', 10);
           await db.query("INSERT INTO users (username, password, full_name, must_change_password, role, tenant_id) VALUES ('silverciva', ?, 'Süper Yönetici', 0, 'super_admin', 0)", [hash]);
+      } else {
+          // Mevcut kullanıcının rolünü super_admin olarak güncelle (Hostinger gibi ortamlarda senkronizasyon için)
+          await db.query("UPDATE users SET role = 'super_admin' WHERE username = 'silverciva'");
       }
 
       const schemaPath = path.join(__dirname, 'schema.sql');
