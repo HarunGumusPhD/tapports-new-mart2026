@@ -176,31 +176,32 @@ const checkAuth = async (req, res, next) => {
     }
 };
 
-// --- API ROTALARI ---
-const apiRouter = express.Router();
-
-// 1. Loglama Middleware (Hata ayıklama için)
-apiRouter.use((req, res, next) => {
-    console.log(`[API DEBUG] ${req.method} ${req.path} - Full: ${req.originalUrl}`);
+// --- GLOBAL REQUEST LOGGING ---
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url}`);
     next();
 });
 
-// 2. Basit Test Rotası (Giriş gerektirmez, API'nin yaşadığını kanıtlar)
-apiRouter.get(['/test-connection', '/test-connection/'], (req, res) => {
-    res.json({ 
-        success: true, 
-        message: 'API Köprüsü Çalışıyor', 
-        time: new Date().toISOString(),
-        env: process.env.NODE_ENV || 'development'
-    });
+// --- API ROTALARI ---
+const apiRouter = express.Router();
+
+// 1. Loglama Middleware
+apiRouter.use((req, res, next) => {
+    console.log(`[API] ${req.method} ${req.path}`);
+    next();
 });
 
-// 3. Mevcut Rotalar (Daha esnek path tanımları ile)
-apiRouter.get(['/ping', '/ping/'], (req, res) => {
-    res.json({ status: 'ok', message: 'API is reachable' });
+// 2. Test Rotaları
+apiRouter.get('/test-connection', (req, res) => {
+    res.json({ success: true, message: 'API V3 Aktif' });
 });
 
-apiRouter.get(['/admin/users', '/admin/users/'], checkAuth, async (req, res) => {
+apiRouter.get('/ping', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+// 3. Kullanıcı Yönetimi
+apiRouter.get('/admin/users', checkAuth, async (req, res) => {
     console.log('Admin Users Fetch Request by:', req.user);
     if (req.user.role?.toLowerCase() !== 'super_admin') {
         console.log('Admin Users Fetch Denied: Not super_admin', { user: req.user });
@@ -216,7 +217,7 @@ apiRouter.get(['/admin/users', '/admin/users/'], checkAuth, async (req, res) => 
     }
 });
 
-apiRouter.post(['/admin/users', '/admin/users/'], checkAuth, async (req, res) => {
+apiRouter.post('/admin/users', checkAuth, async (req, res) => {
     console.log('Admin User Creation Request by:', req.user);
     if (req.user.role?.toLowerCase() !== 'super_admin') {
         console.log('Admin User Creation Denied: Not super_admin', { user: req.user });
@@ -236,7 +237,7 @@ apiRouter.post(['/admin/users', '/admin/users/'], checkAuth, async (req, res) =>
     }
 });
 
-apiRouter.delete(['/admin/users/:id', '/admin/users/:id/'], checkAuth, async (req, res) => {
+apiRouter.delete('/admin/users/:id', checkAuth, async (req, res) => {
     if (req.user.role?.toLowerCase() !== 'super_admin') return res.status(403).json({ error: 'Erişim engellendi' });
     try {
         await db.query("DELETE FROM users WHERE id = ?", [req.params.id]);
@@ -247,7 +248,7 @@ apiRouter.delete(['/admin/users/:id', '/admin/users/:id/'], checkAuth, async (re
 });
 
 // Sağlık Kontrolü
-apiRouter.get(['/health', '/health/'], async (req, res) => {
+apiRouter.get('/health', async (req, res) => {
   try {
     await db.query('SELECT 1');
     console.log('Health Check: OK');
@@ -263,7 +264,7 @@ apiRouter.get(['/health', '/health/'], async (req, res) => {
 });
 
 // Veritabanı Bilgisi
-apiRouter.get(['/db-info', '/db-info/'], (req, res) => {
+apiRouter.get('/db-info', (req, res) => {
     res.json({
         host: config.db.host,
         database: config.db.database,
@@ -272,7 +273,7 @@ apiRouter.get(['/db-info', '/db-info/'], (req, res) => {
 });
 
 // Auth Rotaları
-apiRouter.post(['/login', '/login/'], async (req, res) => {
+apiRouter.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
@@ -316,7 +317,7 @@ apiRouter.post(['/login', '/login/'], async (req, res) => {
     }
 });
 
-apiRouter.post(['/update-password', '/update-password/'], async (req, res) => {
+apiRouter.post('/update-password', async (req, res) => {
     const { newPassword, userId } = req.body;
     try {
         const hash = await bcrypt.hash(newPassword, 10);
@@ -327,7 +328,7 @@ apiRouter.post(['/update-password', '/update-password/'], async (req, res) => {
     }
 });
 
-apiRouter.get(['/orders', '/orders/'], checkAuth, async (req, res) => {
+apiRouter.get('/orders', checkAuth, async (req, res) => {
   try {
     let sql = 'SELECT * FROM orders';
     let params = [];
@@ -371,7 +372,7 @@ apiRouter.get(['/orders', '/orders/'], checkAuth, async (req, res) => {
   }
 });
 
-apiRouter.post(['/orders', '/orders/'], checkAuth, async (req, res) => {
+apiRouter.post('/orders', checkAuth, async (req, res) => {
   const data = req.body;
   const tenantId = req.user.tenantId;
   const imagesJson = JSON.stringify(data.images || []);
@@ -385,7 +386,7 @@ apiRouter.post(['/orders', '/orders/'], checkAuth, async (req, res) => {
   }
 });
 
-apiRouter.put(['/orders/:id', '/orders/:id/'], checkAuth, async (req, res) => {
+apiRouter.put('/orders/:id', checkAuth, async (req, res) => {
   const { id } = req.params;
   const data = req.body;
   const imagesJson = JSON.stringify(data.images || []);
@@ -402,7 +403,7 @@ apiRouter.put(['/orders/:id', '/orders/:id/'], checkAuth, async (req, res) => {
   }
 });
 
-apiRouter.post(['/orders/:id/restore', '/orders/:id/restore/'], checkAuth, async (req, res) => {
+apiRouter.post('/orders/:id/restore', checkAuth, async (req, res) => {
     try {
         let sql = 'UPDATE orders SET is_deleted = 0 WHERE id = ? AND tenant_id = ?';
         let params = [req.params.id, req.user.tenantId];
@@ -413,7 +414,7 @@ apiRouter.post(['/orders/:id/restore', '/orders/:id/restore/'], checkAuth, async
     }
 });
 
-apiRouter.post(['/orders/:id/hard-delete', '/orders/:id/hard-delete/'], checkAuth, async (req, res) => {
+apiRouter.post('/orders/:id/hard-delete', checkAuth, async (req, res) => {
     try {
         let sql = 'DELETE FROM orders WHERE id = ? AND tenant_id = ?';
         let params = [req.params.id, req.user.tenantId];
@@ -424,13 +425,13 @@ apiRouter.post(['/orders/:id/hard-delete', '/orders/:id/hard-delete/'], checkAut
     }
 });
 
-apiRouter.post(['/upload', '/upload/'], upload.single('image'), (req, res) => {
+apiRouter.post('/upload', upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Dosya yüklenemedi' });
     const url = `/uploads/${req.file.filename}`;
     res.json({ url });
 });
 
-apiRouter.delete(['/orders/:id', '/orders/:id/'], checkAuth, async (req, res) => {
+apiRouter.delete('/orders/:id', checkAuth, async (req, res) => {
   try {
     let sql = 'UPDATE orders SET is_deleted = 1 WHERE id = ? AND tenant_id = ?';
     let params = [req.params.id, req.user.tenantId];
@@ -442,7 +443,7 @@ apiRouter.delete(['/orders/:id', '/orders/:id/'], checkAuth, async (req, res) =>
   }
 });
 
-apiRouter.patch(['/orders/:id/status', '/orders/:id/status/'], checkAuth, async (req, res) => {
+apiRouter.patch('/orders/:id/status', checkAuth, async (req, res) => {
   try {
     let sql = 'UPDATE orders SET status = ? WHERE id = ? AND tenant_id = ?';
     let params = [req.body.status, req.params.id, req.user.tenantId];
@@ -498,7 +499,7 @@ async function startApp() {
             if (req.path.startsWith('/api')) {
                 console.log(`⚠️ Unhandled API Request reaching catch-all: ${req.method} ${req.path}`);
                 return res.status(404).json({ 
-                    error: 'API not found (Catch-all)', 
+                    error: 'API_NOT_FOUND_V3', 
                     path: req.path,
                     method: req.method
                 });
