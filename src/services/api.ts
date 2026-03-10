@@ -3,6 +3,20 @@ import { Order, OrderStatus } from '../types';
 
 const API_ENDPOINT = '/api';
 
+const getAuthHeaders = (): Record<string, string> => {
+    const storedUser = localStorage.getItem('rol_user_session');
+    if (!storedUser) return {};
+    try {
+        const user = JSON.parse(storedUser);
+        return {
+            'x-user-role': user.role || '',
+            'x-tenant-id': (user.tenantId || 0).toString()
+        };
+    } catch (e) {
+        return {};
+    }
+};
+
 export const api = {
   getDbInfo: async (): Promise<any> => {
     const response = await fetch(`${API_ENDPOINT}/db-info`);
@@ -66,7 +80,9 @@ export const api = {
   },
 
   getOrders: async (): Promise<Order[]> => {
-    const response = await fetch(`${API_ENDPOINT}/orders`);
+    const response = await fetch(`${API_ENDPOINT}/orders`, {
+        headers: getAuthHeaders()
+    });
     if (response.status === 401) throw new Error('AUTH_REQUIRED');
     if (!response.ok) throw new Error('Veriler alınamadı');
     return response.json();
@@ -76,7 +92,10 @@ export const api = {
     const { calculatedValues, ...orderData } = order;
     await fetch(`${API_ENDPOINT}/orders`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+      },
       body: JSON.stringify(orderData)
     });
   },
@@ -85,28 +104,72 @@ export const api = {
     const { calculatedValues, ...orderData } = order;
     await fetch(`${API_ENDPOINT}/orders/${order.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+      },
       body: JSON.stringify(orderData)
     });
   },
 
   deleteOrder: async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}`, { method: 'DELETE' });
+    await fetch(`${API_ENDPOINT}/orders/${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeaders()
+    });
   },
 
   restoreOrder: async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}/restore`, { method: 'POST' });
+    await fetch(`${API_ENDPOINT}/orders/${id}/restore`, { 
+        method: 'POST',
+        headers: getAuthHeaders()
+    });
   },
 
   hardDeleteOrder: async (id: string): Promise<void> => {
-    await fetch(`${API_ENDPOINT}/orders/${id}/hard-delete`, { method: 'POST' });
+    await fetch(`${API_ENDPOINT}/orders/${id}/hard-delete`, { 
+        method: 'POST',
+        headers: getAuthHeaders()
+    });
   },
 
   updateStatus: async (id: string, status: OrderStatus): Promise<void> => {
     await fetch(`${API_ENDPOINT}/orders/${id}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+      },
       body: JSON.stringify({ status })
     });
+  },
+
+  // Kullanıcı Yönetimi
+  getUsers: async (): Promise<any[]> => {
+      const response = await fetch(`${API_ENDPOINT}/admin/users`, {
+          headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Kullanıcılar alınamadı');
+      return response.json();
+  },
+
+  createUser: async (userData: any): Promise<void> => {
+      const response = await fetch(`${API_ENDPOINT}/admin/users`, {
+          method: 'POST',
+          headers: { 
+              'Content-Type': 'application/json',
+              ...getAuthHeaders()
+          },
+          body: JSON.stringify(userData)
+      });
+      if (!response.ok) throw new Error('Kullanıcı oluşturulamadı');
+  },
+
+  deleteUser: async (id: number): Promise<void> => {
+      const response = await fetch(`${API_ENDPOINT}/admin/users/${id}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Kullanıcı silinemedi');
   }
 };

@@ -26,11 +26,12 @@ import OrderList from './components/OrderList';
 import FinancialCalculator from './components/FinancialCalculator';
 import FinancialReport from './components/FinancialReport';
 import TrashBin from './components/TrashBin';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 import { calculateOrderValues } from './utils/financial';
 import { api } from './services/api';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'reports' | 'trash'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'reports' | 'trash' | 'users'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('rol_dark_mode');
@@ -396,6 +397,7 @@ const App: React.FC = () => {
               { id: 'calc', label: 'Hesap Motoru', icon: CalcIcon },
               { id: 'reports', label: 'Raporlar', icon: PieChart },
               { id: 'trash', label: 'Geri Dönüşüm', icon: Trash2 },
+              ...(user?.role === 'super_admin' ? [{ id: 'users', label: 'Kullanıcı Yönetimi', icon: ShieldCheck }] : []),
             ].map((item) => (
               <button
                 key={item.id}
@@ -506,6 +508,9 @@ const App: React.FC = () => {
                      onRestore={handleRestoreOrder} 
                      onHardDelete={handleHardDeleteOrder} 
                    />
+               )}
+               {activeTab === 'users' && user?.role === 'super_admin' && (
+                 <SuperAdminDashboard />
                )}
            </div>
            

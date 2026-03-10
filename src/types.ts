@@ -14,6 +14,20 @@ export enum ProcessStatus {
   ORDER = 'Siparişleşti'
 }
 
+export enum UserRole {
+  SUPER_ADMIN = 'super_admin',
+  ADMIN = 'admin'
+}
+
+export interface User {
+  id: number;
+  username: string;
+  fullName: string;
+  role: UserRole;
+  tenantId: number;
+  mustChangePassword?: boolean;
+}
+
 export type CommissionRate = 0 | 0.07;
 
 export interface Order {
@@ -35,6 +49,7 @@ export interface Order {
   commissionRate: CommissionRate;
   images?: string[]; // YENİ: Resim URL listesi
   description?: string; // YENİ: Ürün açıklaması
+  tenantId?: number; // YENİ: Multi-tenant desteği
   calculatedValues: CalculatedValues;
   isDeleted?: boolean; // YENİ: Silinme durumu
 }

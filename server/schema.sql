@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS orders (
     commission_rate DECIMAL(5, 2) DEFAULT 0.07,
     images TEXT, -- YENİ: Resim yollarını JSON olarak tutar
     description TEXT, -- YENİ: Ürün açıklaması
+    tenant_id INT DEFAULT 0, -- YENİ: Multi-tenant desteği
     is_deleted TINYINT(1) DEFAULT 0, -- YENİ: Silinme Durumu (0: Aktif, 1: Silinmiş)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
