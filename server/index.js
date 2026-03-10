@@ -178,7 +178,12 @@ const checkAuth = async (req, res, next) => {
 
 // --- API ROTALARI ---
 const apiRouter = express.Router();
-app.use('/api', apiRouter);
+
+// İstek loglama (Sadece API için)
+apiRouter.use((req, res, next) => {
+    console.log(`📡 API Request: ${req.method} ${req.originalUrl}`);
+    next();
+});
 
 // Kullanıcı Yönetimi (Sadece Süper Admin)
 apiRouter.get('/admin/users', checkAuth, async (req, res) => {
@@ -435,6 +440,19 @@ apiRouter.patch('/orders/:id/status', checkAuth, async (req, res) => {
   }
 });
 
+// API Router'ı ana uygulamaya bağla (Tüm rotalar tanımlandıktan sonra)
+app.use('/api', apiRouter);
+
+// API için 404 yakalayıcı (Router içinde)
+apiRouter.use((req, res) => {
+    console.log(`❌ API Route Not Found: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ 
+        error: 'API not found', 
+        method: req.method, 
+        path: req.originalUrl 
+    });
+});
+
 // --- STATIC FILE SERVING ---
 // Hostinger dosya yapısına uyum sağlamak için resolve kullanılır
 const distPath = path.resolve(__dirname, '../dist');
@@ -460,7 +478,15 @@ async function startApp() {
         
         // SPA yönlendirmesi (React Router için)
         app.get('*', (req, res) => {
-            if (req.path.startsWith('/api')) return res.status(404).json({ error: 'API not found' });
+            // Eğer istek /api ile başlıyorsa ve buraya kadar geldiyse API bulunamamıştır
+            if (req.path.startsWith('/api')) {
+                console.log(`⚠️ Unhandled API Request reaching catch-all: ${req.method} ${req.path}`);
+                return res.status(404).json({ 
+                    error: 'API not found (Catch-all)', 
+                    path: req.path,
+                    method: req.method
+                });
+            }
             res.sendFile(path.join(distPath, 'index.html'));
         });
     }
