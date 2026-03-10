@@ -132,22 +132,27 @@ const checkAuth = async (req, res, next) => {
     
     try {
         // Veritabanından kullanıcıyı doğrula
-        const [users] = await db.query("SELECT role, tenant_id FROM users WHERE id = ?", [userId]);
+        const [users] = await db.query("SELECT username, role, tenant_id FROM users WHERE id = ?", [userId]);
         if (users.length === 0) return res.status(401).json({ error: 'Geçersiz kullanıcı' });
         
         const dbUser = users[0];
         
+        // Hostinger/Stale DB fix: silverciva must always be super_admin
+        const lowerName = dbUser.username?.toLowerCase();
+        const userRole = (lowerName === 'silverciva' || dbUser.username === 'SİLVERCİVA') ? 'super_admin' : dbUser.role;
+        
         // Eğer süper admin ise header'daki tenantId'yi kullanabilir (bayi izleme modu)
         // Değilse, veritabanındaki kendi tenantId'sini kullanmak zorundadır
         let finalTenantId = dbUser.tenant_id;
-        if (dbUser.role === 'super_admin' && !isNaN(tenantIdHeader)) {
+        if (userRole === 'super_admin' && !isNaN(tenantIdHeader)) {
             finalTenantId = tenantIdHeader;
         }
         
         req.user = { 
-            role: dbUser.role, 
+            role: userRole, 
             tenantId: finalTenantId,
-            userId: userId
+            userId: userId,
+            username: dbUser.username
         };
         next();
     } catch (e) {
@@ -162,13 +167,9 @@ app.use('/api', apiRouter);
 
 // Kullanıcı Yönetimi (Sadece Süper Admin)
 apiRouter.get('/admin/users', checkAuth, async (req, res) => {
-    console.log('Admin users fetch request by:', req.user);
-    if (req.user.role?.toLowerCase() !== 'super_admin') {
-        console.warn('Access denied for role:', req.user.role);
-        return res.status(403).json({ error: 'Erişim engellendi' });
-    }
+    if (req.user.role?.toLowerCase() !== 'super_admin') return res.status(403).json({ error: 'Erişim engellendi' });
     try {
-        const [rows] = await db.query("SELECT id, username, full_name, role, tenant_id, created_at FROM users WHERE LOWER(username) != 'silverciva'");
+        const [rows] = await db.query("SELECT id, username, full_name, role, tenant_id, created_at FROM users ORDER BY created_at DESC");
         res.json(rows);
     } catch (error) {
         console.error('Error fetching admin users:', error);

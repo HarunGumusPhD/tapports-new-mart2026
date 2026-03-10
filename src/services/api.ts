@@ -173,7 +173,10 @@ export const api = {
           },
           body: JSON.stringify(userData)
       });
-      if (!response.ok) throw new Error('Kullanıcı oluşturulamadı');
+      if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || 'Kullanıcı oluşturulamadı');
+      }
   },
 
   deleteUser: async (id: number): Promise<void> => {

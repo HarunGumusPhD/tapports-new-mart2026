@@ -50,8 +50,8 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
             setShowAddModal(false);
             setNewUser({ username: '', password: '', fullName: '', tenantId: '' });
             fetchUsers();
-        } catch (e) {
-            alert('Kullanıcı oluşturulamadı');
+        } catch (e: any) {
+            alert('Kullanıcı oluşturulamadı: ' + e.message);
         }
     };
 
