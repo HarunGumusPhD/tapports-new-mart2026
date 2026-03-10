@@ -198,6 +198,28 @@ const App: React.FC = () => {
     }
   };
 
+  const handleCompleteOrder = async (order: Order, markAsPaid: boolean = false, customDeposit?: number) => {
+    try {
+      setLoading(true);
+      const updatedOrder = { ...order };
+      updatedOrder.status = OrderStatus.DELIVERED;
+      
+      if (markAsPaid) {
+        updatedOrder.deposit = order.calculatedValues.totalSalePrice;
+      } else if (customDeposit !== undefined) {
+        updatedOrder.deposit = customDeposit;
+      }
+
+      await api.updateOrder(updatedOrder);
+      await fetchOrders();
+    } catch (e) {
+      console.error(e);
+      alert('Sipariş tamamlanırken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteOrder = async (id: string) => {
     try {
         await api.deleteOrder(id);
@@ -467,7 +489,7 @@ const App: React.FC = () => {
                    onUpdateStatus={handleStatusUpdate} 
                    onEditOrder={handleEditOrder} 
                    onDeleteOrder={handleDeleteOrder} 
-                   onCompleteOrder={() => fetchOrders()} 
+                   onCompleteOrder={handleCompleteOrder} 
                  />
                )}
                {activeTab === 'calc' && (

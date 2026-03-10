@@ -7,7 +7,7 @@ interface Props {
   onUpdateStatus: (orderId: string, newStatus: OrderStatus) => void;
   onEditOrder: (order: Order) => void;
   onDeleteOrder: (id: string) => void;
-  onCompleteOrder: (order: Order) => void;
+  onCompleteOrder: (order: Order, markAsPaid?: boolean, customDeposit?: number) => void;
 }
 
 interface FilterState {
@@ -229,16 +229,45 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
     setConfirmDeleteId(id);
   };
 
+  const handleStatusChange = (order: Order, newStatus: OrderStatus) => {
+      if (newStatus === OrderStatus.DELIVERED) {
+          const balance = order.calculatedValues?.balanceDue || 0;
+          if (balance > 0) {
+              const markAsPaid = window.confirm(`Sipariş 'Teslim Edildi' olarak işaretleniyor.\n\n$${balance.toLocaleString('en-US')} tutarındaki bakiyenin TAMAMI tahsil edildi mi?`);
+              
+              if (markAsPaid) {
+                  onCompleteOrder(order, true);
+              } else {
+                  const currentDeposit = order.deposit || 0;
+                  const totalSale = order.calculatedValues?.totalSalePrice || 0;
+                  const promptMsg = `Şu ana kadar toplam ne kadar tahsilat yapıldı? (USD)\n\nToplam Satış: $${totalSale.toLocaleString('en-US')}\nŞu anki Tahsilat: $${currentDeposit.toLocaleString('en-US')}\nKalan Bakiye: $${balance.toLocaleString('en-US')}`;
+                  
+                  const amountStr = window.prompt(promptMsg, currentDeposit.toString());
+                  
+                  if (amountStr !== null) {
+                      const amount = parseFloat(amountStr.replace(',', '.'));
+                      if (!isNaN(amount)) {
+                          onCompleteOrder(order, false, amount);
+                      } else {
+                          alert("Geçersiz tutar girildi.");
+                      }
+                  } else {
+                      // Prompt iptal edildi, sadece durumu güncelle
+                      onUpdateStatus(order.id, OrderStatus.DELIVERED);
+                  }
+              }
+          } else {
+              onCompleteOrder(order, false);
+          }
+      } else {
+          onUpdateStatus(order.id, newStatus);
+      }
+  };
+
   const handleCompleteClick = (e: React.MouseEvent, order: Order) => {
       e.stopPropagation();
-      const balance = order.calculatedValues?.balanceDue || 0;
-      let message = "Siparişi kapatmak ve 'Teslim Edildi' olarak işaretlemek istiyor musunuz?";
-      if (balance > 0) {
-          message = `Siparişin henüz tahsil edilmemiş $${balance.toLocaleString('en-US')} bakiyesi bulunuyor.\n\n"Tamam" derseniz bu tutarın tahsil edildiği varsayılacak ve sipariş kapatılacaktır.`;
-      }
-      if (window.confirm(message)) {
-          onCompleteOrder(order);
-      }
+      // "Teslim Et ve Tamamla" butonu otomatik olarak teslim edildi ve TAM tahsil edildi yapar
+      onCompleteOrder(order, true);
   };
 
   return (
@@ -440,6 +469,9 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 mb-1">
                             <p className="font-semibold text-slate-900 dark:text-white">{order.customerName}</p>
+                            {order.status === OrderStatus.DELIVERED && (order.calculatedValues?.balanceDue || 0) > 0 && (
+                                <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black uppercase border border-red-200 dark:border-red-800">Tahsilat Bekliyor</span>
+                            )}
                             {getProcessStatusBadge(order.processStatus)}
                             {isDelayed && <span className="animate-pulse" title="Gecikmiş Teklif!">🚨</span>}
                         </div>
@@ -468,7 +500,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                            <select 
                             disabled={!isOrderActive}
                             value={order.status}
-                            onChange={(e) => onUpdateStatus(order.id, e.target.value as OrderStatus)}
+                            onChange={(e) => handleStatusChange(order, e.target.value as OrderStatus)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-none outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-400 appearance-none 
                                 ${!isOrderActive 
                                     ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-60' 
@@ -478,6 +510,12 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                           >
                             {(Object.values(OrderStatus) as string[]).map(status => <option key={status} value={status}>{status}</option>)}
                           </select>
+                          {order.status === OrderStatus.DELIVERED && (order.calculatedValues?.balanceDue || 0) > 0 && (
+                              <div className="mt-1.5 flex items-center gap-1 text-[9px] font-bold text-red-600 dark:text-red-400 animate-pulse">
+                                  <AlertCircle className="w-3 h-3" />
+                                  TAHSİLAT EKSİK
+                              </div>
+                          )}
                           {!isOrderActive && (
                               <div className="text-[9px] text-slate-400 mt-1 font-medium">Siparişleşme Bekleniyor</div>
                           )}
@@ -495,7 +533,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1 relative">
                           {order.status !== OrderStatus.DELIVERED && isOrderActive && (
-                              <button onClick={(e) => handleCompleteClick(e, order)} className="p-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow-sm" title="Tamamla"><CheckCircle className="w-4 h-4" /></button>
+                              <button onClick={(e) => handleCompleteClick(e, order)} className="p-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow-sm" title="Teslim Et ve Tamamla"><CheckCircle className="w-4 h-4" /></button>
                           )}
                           <button onClick={(e) => { e.stopPropagation(); onEditOrder(order); }} className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-800 rounded-lg shadow-sm" title="Düzenle"><Edit2 className="w-4 h-4" /></button>
                           <div className="relative">
