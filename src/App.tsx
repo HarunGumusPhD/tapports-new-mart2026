@@ -80,7 +80,8 @@ const App: React.FC = () => {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 // Stale session fix: silverciva must always be super_admin
-                if (parsedUser.username?.toLowerCase() === 'silverciva') {
+                const lowerName = parsedUser.username?.toLowerCase();
+                if (lowerName === 'silverciva' || parsedUser.username === 'SİLVERCİVA') {
                     parsedUser.role = 'super_admin';
                     localStorage.setItem('rol_user_session', JSON.stringify(parsedUser));
                 }
@@ -152,7 +153,8 @@ const App: React.FC = () => {
       const res = await api.login(loginData.username, loginData.password);
       if (res.success) {
         // Stale session fix: silverciva must always be super_admin
-        if (res.user.username?.toLowerCase() === 'silverciva') {
+        const lowerName = res.user.username?.toLowerCase();
+        if (lowerName === 'silverciva' || res.user.username === 'SİLVERCİVA') {
             res.user.role = 'super_admin';
         }
         setUser(res.user);

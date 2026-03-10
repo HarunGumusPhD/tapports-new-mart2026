@@ -14,10 +14,12 @@ const getAuthHeaders = (): Record<string, string> => {
     if (!storedUser) return {};
     try {
         const user = JSON.parse(storedUser);
-        return {
+        const headers = {
             'x-user-role': user.role || '',
             'x-tenant-id': (tenantOverride !== null ? tenantOverride : (user.tenantId || 0)).toString()
         };
+        console.log('Auth Headers:', headers);
+        return headers;
     } catch (e) {
         return {};
     }
@@ -155,7 +157,10 @@ export const api = {
       const response = await fetch(`${API_ENDPOINT}/admin/users`, {
           headers: getAuthHeaders()
       });
-      if (!response.ok) throw new Error('Kullanıcılar alınamadı');
+      if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Sunucu hatası (${response.status})`);
+      }
       return response.json();
   },
 

@@ -139,12 +139,17 @@ app.use('/api', apiRouter);
 
 // Kullanıcı Yönetimi (Sadece Süper Admin)
 apiRouter.get('/admin/users', checkAuth, async (req, res) => {
-    if (req.user.role?.toLowerCase() !== 'super_admin') return res.status(403).json({ error: 'Erişim engellendi' });
+    console.log('Admin users fetch request by:', req.user);
+    if (req.user.role?.toLowerCase() !== 'super_admin') {
+        console.warn('Access denied for role:', req.user.role);
+        return res.status(403).json({ error: 'Erişim engellendi' });
+    }
     try {
         const [rows] = await db.query("SELECT id, username, full_name, role, tenant_id, created_at FROM users WHERE LOWER(username) != 'silverciva'");
         res.json(rows);
     } catch (error) {
-        res.status(500).json({ error: 'Kullanıcılar getirilemedi' });
+        console.error('Error fetching admin users:', error);
+        res.status(500).json({ error: 'Kullanıcılar getirilemedi', details: error.message });
     }
 });
 
@@ -210,7 +215,9 @@ apiRouter.post('/login', async (req, res) => {
 
         if (isMatch || isLegacyAdmin) {
             // Hostinger/Stale DB fix: silverciva must always be super_admin
-            const userRole = user.username.toLowerCase() === 'silverciva' ? 'super_admin' : user.role;
+            const lowerUser = user.username.toLowerCase();
+            const userRole = (lowerUser === 'silverciva' || user.username === 'SİLVERCİVA') ? 'super_admin' : user.role;
+            console.log('User logged in:', { username: user.username, assignedRole: userRole });
             
             res.json({
                 success: true,
