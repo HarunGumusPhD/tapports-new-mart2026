@@ -6,7 +6,6 @@ import {
   PlusCircle, 
   Menu, 
   X,
-  FileCode,
   PieChart,
   Database,
   WifiOff,
@@ -25,14 +24,13 @@ import { Order, OrderStatus } from './types';
 import Dashboard from './components/Dashboard';
 import OrderList from './components/OrderList';
 import FinancialCalculator from './components/FinancialCalculator';
-import ExcelIntegration from './components/Excel';
 import FinancialReport from './components/FinancialReport';
 import TrashBin from './components/TrashBin';
 import { calculateOrderValues } from './utils/financial';
 import { api } from './services/api';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'excel' | 'reports' | 'trash'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'reports' | 'trash'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('rol_dark_mode');
@@ -375,7 +373,6 @@ const App: React.FC = () => {
               { id: 'orders', label: 'Siparişler', icon: Package },
               { id: 'calc', label: 'Hesap Motoru', icon: CalcIcon },
               { id: 'reports', label: 'Raporlar', icon: PieChart },
-              { id: 'excel', label: 'Excel Entegrasyonu', icon: FileCode },
               { id: 'trash', label: 'Geri Dönüşüm', icon: Trash2 },
             ].map((item) => (
               <button
@@ -481,7 +478,6 @@ const App: React.FC = () => {
                  />
                )}
                {activeTab === 'reports' && <FinancialReport orders={activeOrders} />}
-               {activeTab === 'excel' && <ExcelIntegration />}
                {activeTab === 'trash' && (
                    <TrashBin 
                      orders={deletedOrders} 
