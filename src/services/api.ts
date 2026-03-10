@@ -31,7 +31,7 @@ export const api = {
     return response.json();
   },
   
-  getAuthHeaders: (): Record<string, string> => getAuthHeaders(),
+  getAuthHeaders,
 
   login: async (username: string, password: string): Promise<any> => {
     const response = await fetch(`${API_ENDPOINT}/login`, {

@@ -21,6 +21,7 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
+            console.log('Fetching users with headers:', api.getAuthHeaders());
             const data = await api.getUsers();
             console.log('Users fetched successfully:', data);
             setUsers(data);

@@ -176,31 +176,11 @@ const checkAuth = async (req, res, next) => {
     }
 };
 
-// --- GLOBAL REQUEST LOGGING ---
-app.use((req, res, next) => {
-    console.log(`[REQUEST] ${req.method} ${req.url}`);
-    next();
-});
-
 // --- API ROTALARI ---
 const apiRouter = express.Router();
+app.use('/api', apiRouter);
 
-// 1. Loglama Middleware
-apiRouter.use((req, res, next) => {
-    console.log(`[API] ${req.method} ${req.path}`);
-    next();
-});
-
-// 2. Test Rotaları
-apiRouter.get('/test-connection', (req, res) => {
-    res.json({ success: true, message: 'API V3 Aktif' });
-});
-
-apiRouter.get('/ping', (req, res) => {
-    res.json({ status: 'ok' });
-});
-
-// 3. Kullanıcı Yönetimi
+// Kullanıcı Yönetimi (Sadece Süper Admin)
 apiRouter.get('/admin/users', checkAuth, async (req, res) => {
     console.log('Admin Users Fetch Request by:', req.user);
     if (req.user.role?.toLowerCase() !== 'super_admin') {
@@ -455,21 +435,6 @@ apiRouter.patch('/orders/:id/status', checkAuth, async (req, res) => {
   }
 });
 
-// --- API ROTALARI BAĞLAMA ---
-// API rotalarını statik dosyalardan ÖNCE bağlamalıyız
-app.use('/api', apiRouter);
-
-// API için 404 yakalayıcı (Router içinde)
-apiRouter.use((req, res) => {
-    console.log(`❌ API Route Not Found: ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ 
-        error: 'API rotası bulunamadı', 
-        method: req.method, 
-        path: req.originalUrl,
-        tip: 'Lütfen API yolunun doğru olduğundan emin olun.'
-    });
-});
-
 // --- STATIC FILE SERVING ---
 // Hostinger dosya yapısına uyum sağlamak için resolve kullanılır
 const distPath = path.resolve(__dirname, '../dist');
@@ -495,15 +460,7 @@ async function startApp() {
         
         // SPA yönlendirmesi (React Router için)
         app.get('*', (req, res) => {
-            // Eğer istek /api ile başlıyorsa ve buraya kadar geldiyse API bulunamamıştır
-            if (req.path.startsWith('/api')) {
-                console.log(`⚠️ Unhandled API Request reaching catch-all: ${req.method} ${req.path}`);
-                return res.status(404).json({ 
-                    error: 'API_NOT_FOUND_V3', 
-                    path: req.path,
-                    method: req.method
-                });
-            }
+            if (req.path.startsWith('/api')) return res.status(404).json({ error: 'API not found' });
             res.sendFile(path.join(distPath, 'index.html'));
         });
     }
