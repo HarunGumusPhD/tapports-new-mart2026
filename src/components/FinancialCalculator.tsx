@@ -465,6 +465,35 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
                         </div>
                     </div>
 
+                    {formData.quantity > 1 && (
+                        <div className="pt-4 border-t border-slate-800 space-y-2">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400 text-xs">Birim Ürün Satış Bedeli</span>
+                                <span className="font-mono text-sm font-bold text-blue-400">
+                                    ${(calculations.totalSalePrice / formData.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-slate-500">
+                                <div className="flex justify-between">
+                                    <span>Birim Alış:</span>
+                                    <span className="text-slate-300">${Number(formData.buyPrice).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Birim Komisyon:</span>
+                                    <span className="text-slate-300">${(calculations.commissionAmount / formData.quantity).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Birim Lojistik:</span>
+                                    <span className="text-slate-300">${((Number(formData.logisticsCost) + Number(formData.localShipping)) / formData.quantity).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Birim Kâr:</span>
+                                    <span className="text-slate-300">${(calculations.profit / formData.quantity).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-3 pt-4">
                         <div className="flex justify-between text-xs">
                         <span className="text-slate-400">Tahsilat Durumu</span>
