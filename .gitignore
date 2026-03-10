@@ -1,0 +1,15 @@
+
+# Bağımlılıklar
+node_modules/
+
+# Üretim dosyaları
+dist/
+build/
+
+# Çevresel değişkenler ve Sırlar (EN ÖNEMLİ KISIM)
+# .env dosyasında veritabanı şifresi olduğu için ASLA paylaşılmamalıdır.
+.env
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db

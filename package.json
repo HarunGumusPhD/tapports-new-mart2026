@@ -1,0 +1,44 @@
+{
+  "name": "rol-scm-assistant",
+  "version": "1.0.0",
+  "description": "Akıllı Sipariş ve Tedarik Zinciri Yönetim Asistanı",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "node server/index.js",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit",
+    "server": "node server/index.js",
+    "start": "node server/index.js",
+    "postinstall": "npm run build",
+    "dev:full": "concurrently \"npm run server\" \"npm run dev\""
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "lucide-react": "^0.344.0",
+    "multer": "^2.1.1",
+    "mysql2": "^3.9.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.18",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
+  }
+}
