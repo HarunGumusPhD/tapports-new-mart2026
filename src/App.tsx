@@ -21,15 +21,15 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import { Order, OrderStatus } from './types';
-import Dashboard from './components/Dashboard';
-import OrderList from './components/OrderList';
-import FinancialCalculator from './components/FinancialCalculator';
-import ExcelIntegration from './components/ExcelIntegration';
-import FinancialReport from './components/FinancialReport';
-import TrashBin from './components/TrashBin';
-import { calculateOrderValues } from './utils/financial';
-import { api } from './services/api';
+import { Order, OrderStatus } from '@/types';
+import Dashboard from '@/components/Dashboard';
+import OrderList from '@/components/OrderList';
+import FinancialCalculator from '@/components/FinancialCalculator';
+import ExcelIntegration from '@/components/ExcelIntegration';
+import FinancialReport from '@/components/FinancialReport';
+import TrashBin from '@/components/TrashBin';
+import { calculateOrderValues } from '@/utils/financial';
+import { api } from '@/services/api';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'calc' | 'excel' | 'reports' | 'trash'>('dashboard');
@@ -93,10 +93,8 @@ const App: React.FC = () => {
     if (!isAuthenticated) return;
     try {
       setLoading(true);
-      console.log('🔄 Siparişler çekiliyor...');
       const data = await api.getOrders();
-      console.log(`✅ ${data.length} sipariş alındı.`);
-      const enrichedOrders = data.map(order => ({
+      const enrichedOrders = data.map((order: Order) => ({
         ...order,
         calculatedValues: calculateOrderValues(
           order.buyPrice, order.quantity, order.logisticsCost,
@@ -176,22 +174,17 @@ const App: React.FC = () => {
   const handleSaveOrder = async (order: Order) => {
     try {
       setLoading(true);
-      console.log('💾 Sipariş kaydediliyor:', order);
       if (editingOrder) {
         await api.updateOrder(order);
-        console.log('✅ Sipariş güncellendi');
       } else {
         await api.createOrder(order);
-        console.log('✅ Yeni sipariş oluşturuldu');
       }
       setEditingOrder(null);
       await fetchOrders();
       setActiveTab('orders');
-      // Başarı bildirimi (Opsiyonel ama kullanıcı için iyi olur)
-      // alert('Sipariş başarıyla kaydedildi.'); 
-    } catch (e: any) {
-      console.error('❌ Kayıt hatası:', e);
-      alert('İşlem sırasında bir hata oluştu: ' + (e.message || 'Bilinmeyen hata'));
+    } catch (e) {
+      console.error(e);
+      alert('İşlem sırasında bir hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -387,16 +380,7 @@ const App: React.FC = () => {
             ].map((item) => (
               <button
                 key={item.id}
-                onClick={() => { 
-                  setActiveTab(item.id as any); 
-                  setIsSidebarOpen(false); 
-                  if (item.id === 'calc') {
-                    setIsCalculatorMode(true);
-                    setEditingOrder(null);
-                  } else {
-                    setIsCalculatorMode(false);
-                  }
-                }}
+                onClick={() => { setActiveTab(item.id as any); setIsSidebarOpen(false); }}
                 className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all ${
                   activeTab === item.id 
                     ? 'bg-blue-600 text-white font-bold shadow-xl shadow-blue-100 dark:shadow-none' 
@@ -479,7 +463,7 @@ const App: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto p-8 lg:p-12 flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
            <div className="flex-1">
-               {activeTab === 'dashboard' && <Dashboard orders={activeOrders} onNavigate={(tab) => setActiveTab(tab as any)} />}
+               {activeTab === 'dashboard' && <Dashboard orders={activeOrders} onNavigate={(tab: string) => setActiveTab(tab as any)} />}
                {activeTab === 'orders' && (
                  <OrderList 
                    orders={activeOrders} 
@@ -494,7 +478,6 @@ const App: React.FC = () => {
                    onOrderComplete={handleSaveOrder} 
                    initialData={editingOrder} 
                    isCalculatorMode={isCalculatorMode} 
-                   loading={loading}
                  />
                )}
                {activeTab === 'reports' && <FinancialReport orders={activeOrders} />}

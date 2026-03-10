@@ -1,19 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
 
-// https://vitejs.dev/config/
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
-  server: {
-    port: 3000,
-    host: '0.0.0.0',
+  // Proxy ayarı kaldırıldı çünkü api.php statik bir dosya gibi public klasöründen sunulacak (Prod) 
+  // veya yerel PHP sunucusu kullanılacak.
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
   }
-})
+});

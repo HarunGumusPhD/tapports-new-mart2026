@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Order, OrderStatus, ProcessStatus } from '../types';
+import { Order, OrderStatus, ProcessStatus } from '@/types';
 import { Search, Filter, FileSpreadsheet, Trash2, Edit2, AlertCircle, Store, CheckCircle, Clock, X, Calendar, DollarSign, Users, Truck } from 'lucide-react';
 
 interface Props {
