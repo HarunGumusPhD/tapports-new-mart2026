@@ -37,10 +37,15 @@ const SuperAdminDashboard: React.FC<Props> = ({ onViewTenant }) => {
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
+        const tId = parseInt(newUser.tenantId);
+        if (isNaN(tId) || tId <= 0) {
+            alert('Lütfen geçerli ve 0\'dan büyük bir Tenant ID (Bayi No) giriniz. 0 Süper Admin\'e aittir.');
+            return;
+        }
         try {
             await api.createUser({
                 ...newUser,
-                tenantId: parseInt(newUser.tenantId) || 0
+                tenantId: tId
             });
             setShowAddModal(false);
             setNewUser({ username: '', password: '', fullName: '', tenantId: '' });

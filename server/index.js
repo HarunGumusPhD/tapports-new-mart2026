@@ -123,14 +123,37 @@ const initDb = async () => {
 };
 
 // --- AUTH MIDDLEWARE ---
-const checkAuth = (req, res, next) => {
+const checkAuth = async (req, res, next) => {
     const role = req.headers['x-user-role'];
-    const tenantId = parseInt(req.headers['x-tenant-id']);
+    const tenantIdHeader = parseInt(req.headers['x-tenant-id']);
+    const userId = req.headers['x-user-id'];
     
-    if (!role) return res.status(401).json({ error: 'Yetkisiz erişim' });
+    if (!role || !userId) return res.status(401).json({ error: 'Yetkisiz erişim' });
     
-    req.user = { role, tenantId };
-    next();
+    try {
+        // Veritabanından kullanıcıyı doğrula
+        const [users] = await db.query("SELECT role, tenant_id FROM users WHERE id = ?", [userId]);
+        if (users.length === 0) return res.status(401).json({ error: 'Geçersiz kullanıcı' });
+        
+        const dbUser = users[0];
+        
+        // Eğer süper admin ise header'daki tenantId'yi kullanabilir (bayi izleme modu)
+        // Değilse, veritabanındaki kendi tenantId'sini kullanmak zorundadır
+        let finalTenantId = dbUser.tenant_id;
+        if (dbUser.role === 'super_admin' && !isNaN(tenantIdHeader)) {
+            finalTenantId = tenantIdHeader;
+        }
+        
+        req.user = { 
+            role: dbUser.role, 
+            tenantId: finalTenantId,
+            userId: userId
+        };
+        next();
+    } catch (e) {
+        console.error('Auth Middleware Error:', e);
+        res.status(500).json({ error: 'Yetkilendirme hatası' });
+    }
 };
 
 // --- API ROTALARI ---
@@ -256,8 +279,15 @@ apiRouter.post('/update-password', async (req, res) => {
 
 apiRouter.get('/orders', checkAuth, async (req, res) => {
   try {
-    let sql = 'SELECT * FROM orders WHERE tenant_id = ?';
-    let params = [req.user.tenantId];
+    let sql = 'SELECT * FROM orders';
+    let params = [];
+    
+    // Süper admin ve tenantId 0 ise (tüm sistem) her şeyi görsün
+    // Değilse sadece kendi tenant'ını görsün
+    if (req.user.role !== 'super_admin' || req.user.tenantId !== 0) {
+        sql += ' WHERE tenant_id = ?';
+        params.push(req.user.tenantId);
+    }
     
     sql += ' ORDER BY created_at DESC';
     

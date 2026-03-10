@@ -15,10 +15,10 @@ const getAuthHeaders = (): Record<string, string> => {
     try {
         const user = JSON.parse(storedUser);
         const headers = {
+            'x-user-id': user.id?.toString() || '',
             'x-user-role': user.role || '',
             'x-tenant-id': (tenantOverride !== null ? tenantOverride : (user.tenantId || 0)).toString()
         };
-        console.log('Auth Headers:', headers);
         return headers;
     } catch (e) {
         return {};
