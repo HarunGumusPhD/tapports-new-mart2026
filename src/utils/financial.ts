@@ -31,14 +31,14 @@ export const calculateOrderValues = (
   const totalSalePrice = totalCost + profit;
   
   // 6. Tahsilat ve İlerleme
-  const balanceDue = totalSalePrice - deposit;
+  const balanceDue = Number((totalSalePrice - deposit).toFixed(2));
   const paymentProgress = totalSalePrice > 0 ? (deposit / totalSalePrice) * 100 : 0;
 
   return {
-    commissionAmount,
-    unitCost: totalCost,
-    totalSalePrice,
-    profit,
+    commissionAmount: Number(commissionAmount.toFixed(2)),
+    unitCost: Number(totalCost.toFixed(2)),
+    totalSalePrice: Number(totalSalePrice.toFixed(2)),
+    profit: Number(profit.toFixed(2)),
     balanceDue,
     paymentProgress
   };

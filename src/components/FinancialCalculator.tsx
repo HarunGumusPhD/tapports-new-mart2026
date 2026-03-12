@@ -458,11 +458,11 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
                         <div className="flex justify-between items-end">
                         <div>
                             <p className="text-blue-400 text-[10px] font-bold uppercase mb-1">Toplam Satış (USD)</p>
-                            <p className="text-3xl font-bold">${calculations.totalSalePrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-3xl font-bold">${calculations.totalSalePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-emerald-400 text-[10px] font-bold uppercase mb-1">Net Kâr</p>
-                            <p className="text-xl font-bold text-emerald-400">+${calculations.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xl font-bold text-emerald-400">+${calculations.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </div>
                         </div>
                     </div>
@@ -509,7 +509,7 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
                         </div>
                         {calculations.balanceDue > 0 ? (
                         <p className="text-center text-xs text-orange-400 font-medium">
-                            Kalan Alacak: ${calculations.balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            Kalan Alacak: ${calculations.balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         ) : (
                             <p className="text-center text-xs text-emerald-400 font-bold flex items-center justify-center gap-1">

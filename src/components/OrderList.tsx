@@ -485,8 +485,8 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-slate-900 dark:text-white font-bold">${(order.calculatedValues?.totalSalePrice || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Kâr: +${(order.calculatedValues?.profit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        <p className="text-slate-900 dark:text-white font-bold">${(order.calculatedValues?.totalSalePrice || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Kâr: +${(order.calculatedValues?.profit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                       </td>
                       <td className="px-6 py-4">
                         <div className="relative">
@@ -517,7 +517,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                       <td className="px-6 py-4 min-w-[140px]">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">%{ (order.calculatedValues?.paymentProgress || 0).toFixed(0) }</span>
-                          <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">${ (order.calculatedValues?.balanceDue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }</span>
+                          <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">${ (order.calculatedValues?.balanceDue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }</span>
                         </div>
                         <div className="w-full h-1.5 bg-slate-200/50 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full transition-all duration-1000 ${order.calculatedValues?.balanceDue === 0 ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${Math.min(order.calculatedValues?.paymentProgress || 0, 100)}%` }} />
