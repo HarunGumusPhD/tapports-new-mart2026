@@ -102,7 +102,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
   }, [orders, filters]);
 
   const getRowStyle = (status: string, processStatus?: string) => {
-    if (processStatus === ProcessStatus.CANCELED || status === OrderStatus.CANCELED) {
+    if (processStatus === ProcessStatus.CANCELED) {
         return 'bg-red-50/30 hover:bg-red-50/50 border-l-4 border-l-red-500 opacity-75';
     }
     switch (status) {

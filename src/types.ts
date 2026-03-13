@@ -4,8 +4,7 @@ export enum OrderStatus {
   PURCHASED = 'Satın Alındı',
   SHIPPED = 'Gönderildi',
   LOCAL_CARGO = 'Yurtiçi Kargo',
-  DELIVERED = 'Teslim Edildi',
-  CANCELED = 'İptal'
+  DELIVERED = 'Teslim Edildi'
 }
 
 // YENİ: Süreç Durumları

@@ -66,7 +66,6 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
       { name: 'Gönderildi', count: 0 },
       { name: 'Yurtiçi Kargo', count: 0 },
       { name: 'Teslim Edildi', count: 0 },
-      { name: 'İptal', count: 0 },
     ];
 
     // Sadece siparişleşmiş olanların lojistik dağılımını göster
