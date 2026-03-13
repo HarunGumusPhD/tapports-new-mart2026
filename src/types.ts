@@ -1,10 +1,11 @@
 
 export enum OrderStatus {
-  CHINA_WAREHOUSE = 'Çin Depo',
-  AIR_TRANSIT = 'Uçak',
-  TR_CUSTOMS = 'TR Gümrük',
+  TO_BE_PURCHASED = 'Satın Alınacak',
+  PURCHASED = 'Satın Alındı',
+  SHIPPED = 'Gönderildi',
   LOCAL_CARGO = 'Yurtiçi Kargo',
-  DELIVERED = 'Teslim Edildi'
+  DELIVERED = 'Teslim Edildi',
+  CANCELED = 'İptal'
 }
 
 // YENİ: Süreç Durumları

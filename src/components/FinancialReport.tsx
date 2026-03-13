@@ -149,7 +149,7 @@ const FinancialReport: React.FC<Props> = ({ orders }) => {
               <th>Net Kâr (USD)</th>
               <th>Kâr Marjı (%)</th>
               <th>Lojistik (USD)</th>
-              <th>Durum</th>
+              <th>Ürün Durumu</th>
             </tr>
           </thead>
           <tbody>

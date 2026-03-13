@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS orders (
     logistics_cost DECIMAL(10, 2) DEFAULT 0.00,
     local_shipping DECIMAL(10, 2) DEFAULT 0.00,
     deposit DECIMAL(10, 2) DEFAULT 0.00,
-    status VARCHAR(50) DEFAULT 'Çin Depo',
+    status VARCHAR(50) DEFAULT 'Satın Alınacak',
     profit_margin DECIMAL(5, 2) DEFAULT 0.30,
     commission_rate DECIMAL(5, 2) DEFAULT 0.07,
     images TEXT, -- YENİ: Resim yollarını JSON olarak tutar

@@ -61,11 +61,12 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
 
   const chartData = useMemo(() => {
     const statusGroups = [
-      { name: 'Çin Depo', count: 0 },
-      { name: 'Uçak', count: 0 },
-      { name: 'TR Gümrük', count: 0 },
+      { name: 'Satın Alınacak', count: 0 },
+      { name: 'Satın Alındı', count: 0 },
+      { name: 'Gönderildi', count: 0 },
       { name: 'Yurtiçi Kargo', count: 0 },
       { name: 'Teslim Edildi', count: 0 },
+      { name: 'İptal', count: 0 },
     ];
 
     // Sadece siparişleşmiş olanların lojistik dağılımını göster
@@ -182,7 +183,7 @@ const Dashboard: React.FC<Props> = ({ orders, onNavigate }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Lojistik Dağılımı (Siparişleşen İşler)</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Ürün Durumu Dağılımı (Siparişleşen İşler)</h3>
             <span className="text-[10px] font-bold text-slate-400 uppercase">Gerçek Veri</span>
           </div>
           <div className="h-64 w-full">

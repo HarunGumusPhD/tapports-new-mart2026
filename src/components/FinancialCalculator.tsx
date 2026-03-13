@@ -29,7 +29,7 @@ const FinancialCalculator: React.FC<Props> = ({ onOrderComplete, initialData, is
     deposit: 0 as number | string,
     profitMargin: 0.3,
     commissionRate: 0.07 as CommissionRate,
-    status: OrderStatus.CHINA_WAREHOUSE,
+    status: OrderStatus.TO_BE_PURCHASED,
     processStatus: ProcessStatus.ORDER, 
     description: '',
     date: new Date().toISOString().split('T')[0],

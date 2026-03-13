@@ -102,17 +102,18 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
   }, [orders, filters]);
 
   const getRowStyle = (status: string, processStatus?: string) => {
-    if (processStatus === ProcessStatus.CANCELED) {
+    if (processStatus === ProcessStatus.CANCELED || status === OrderStatus.CANCELED) {
         return 'bg-red-50/30 hover:bg-red-50/50 border-l-4 border-l-red-500 opacity-75';
     }
     switch (status) {
       case OrderStatus.DELIVERED:
         return 'bg-emerald-50/70 hover:bg-emerald-100/80 border-l-4 border-l-emerald-500';
-      case OrderStatus.AIR_TRANSIT:
-      case OrderStatus.TR_CUSTOMS:
+      case OrderStatus.SHIPPED:
         return 'bg-blue-50/70 hover:bg-blue-100/80 border-l-4 border-l-blue-500';
       case OrderStatus.LOCAL_CARGO:
         return 'bg-orange-50/70 hover:bg-orange-100/80 border-l-4 border-l-orange-500';
+      case OrderStatus.PURCHASED:
+        return 'bg-cyan-50/70 hover:bg-cyan-100/80 border-l-4 border-l-cyan-500';
       default:
         return 'bg-white hover:bg-slate-50 border-l-4 border-l-transparent';
     }
@@ -168,7 +169,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
               <th>TOPLAM_MALIYET_USD</th>
               <th>SATIS_FIYATI_USD</th>
               <th>NET_KAR_USD</th>
-              <th>LOJISTIK_DURUMU</th>
+              <th>URUN_DURUMU</th>
               <th>KALAN_ALACAK_USD</th>
               <th>ACIKLAMA</th>
               <th>RESIM_URLLERI</th>
@@ -361,7 +362,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                   {/* Durum Filtresi */}
                   <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                          <Truck className="w-3 h-3" /> Lojistik Durumu
+                          <Truck className="w-3 h-3" /> Ürün Durumu
                       </label>
                       <select 
                           className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-100 outline-none dark:text-white"
@@ -406,7 +407,7 @@ const OrderList: React.FC<Props> = ({ orders, onUpdateStatus, onEditOrder, onDel
                 <th className="px-6 py-4">Müşteri / Ürün (Adet)</th>
                 <th className="px-6 py-4">Tarihler</th>
                 <th className="px-6 py-4">Finansal (USD)</th>
-                <th className="px-6 py-4">Lojistik Durumu</th>
+                <th className="px-6 py-4">Ürün Durumu</th>
                 <th className="px-6 py-4">Tahsilat</th>
                 <th className="px-6 py-4 text-right">Aksiyonlar</th>
               </tr>
