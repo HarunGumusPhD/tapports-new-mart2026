@@ -25,6 +25,7 @@ export interface User {
   username: string;
   fullName: string;
   role: UserRole;
+  tenantId: number;
   mustChangePassword?: boolean;
 }
 

@@ -26,7 +26,7 @@ import OrderList from './components/OrderList';
 import FinancialCalculator from './components/FinancialCalculator';
 import FinancialReport from './components/FinancialReport';
 import TrashBin from './components/TrashBin';
-import AdminUzman from './components/AdminUzman';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 import { calculateOrderValues } from './utils/financial';
 import { api, setTenantOverride } from './services/api';
 
@@ -54,14 +54,6 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
-
-  // ROUTING LOGIC
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/AdminUzman' && user?.role === 'super_admin') {
-      setActiveTab('users');
-    }
-  }, [user]);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -582,7 +574,7 @@ const App: React.FC = () => {
                    />
                )}
                {activeTab === 'users' && user?.role === 'super_admin' && (
-                 <AdminUzman onViewTenant={handleViewTenant} />
+                 <SuperAdminDashboard onViewTenant={handleViewTenant} />
                )}
            </div>
            

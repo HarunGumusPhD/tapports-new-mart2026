@@ -91,13 +91,13 @@ const initDb = async () => {
       }
 
       // Süper Admin kullanıcısı yoksa ekle, varsa rolünü zorla güncelle
-      const [superUsers] = await db.query("SELECT COUNT(*) as count FROM users WHERE username = 'silverciva@gmail.com'");
+      const [superUsers] = await db.query("SELECT COUNT(*) as count FROM users WHERE username = 'silverciva'");
       if (superUsers[0].count === 0) {
-          const hash = await bcrypt.hash('qazXSW12!', 10);
-          await db.query("INSERT INTO users (username, password, full_name, must_change_password, role, tenant_id) VALUES ('silverciva@gmail.com', ?, 'Süper Yönetici', 1, 'super_admin', 9999)", [hash]);
+          const hash = await bcrypt.hash('qazXSW12!!', 10);
+          await db.query("INSERT INTO users (username, password, full_name, must_change_password, role, tenant_id) VALUES ('silverciva', ?, 'Süper Yönetici', 0, 'super_admin', 9999)", [hash]);
       } else {
-          // Mevcut kullanıcının rolünü super_admin olarak güncelle
-          await db.query("UPDATE users SET role = 'super_admin', tenant_id = 9999 WHERE username = 'silverciva@gmail.com'");
+          // Mevcut kullanıcının rolünü super_admin olarak güncelle (Hostinger gibi ortamlarda senkronizasyon için)
+          await db.query("UPDATE users SET role = 'super_admin', tenant_id = 9999 WHERE username = 'silverciva'");
       }
 
       const schemaPath = path.join(__dirname, 'schema.sql');
@@ -151,9 +151,9 @@ const checkAuth = async (req, res, next) => {
         const dbUser = users[0];
         console.log('Auth Check:', { userId, username: dbUser.username, role: dbUser.role, tenantId: dbUser.tenant_id });
         
-        // Hostinger/Stale DB fix: silverciva@gmail.com must always be super_admin
+        // Hostinger/Stale DB fix: silverciva must always be super_admin
         const lowerName = dbUser.username?.toLowerCase();
-        const userRole = (lowerName === 'silverciva@gmail.com') ? 'super_admin' : dbUser.role;
+        const userRole = (lowerName === 'silverciva' || dbUser.username === 'SİLVERCİVA') ? 'super_admin' : dbUser.role;
         
         // Eğer süper admin ise header'daki tenantId'yi kullanabilir (bayi izleme modu)
         // Değilse, veritabanındaki kendi tenantId'sini kullanmak zorundadır
@@ -286,9 +286,9 @@ apiRouter.post('/login', async (req, res) => {
         const isLegacyAdmin = username === 'admin' && password === 'admin';
 
         if (isMatch || isLegacyAdmin) {
-            // Hostinger/Stale DB fix: silverciva@gmail.com must always be super_admin
+            // Hostinger/Stale DB fix: silverciva must always be super_admin
             const lowerUser = user.username.toLowerCase();
-            const userRole = (lowerUser === 'silverciva@gmail.com') ? 'super_admin' : user.role;
+            const userRole = (lowerUser === 'silverciva' || user.username === 'SİLVERCİVA') ? 'super_admin' : user.role;
             const finalTenantId = (userRole === 'super_admin') ? 9999 : user.tenant_id;
             
             console.log('User logged in:', { username: user.username, assignedRole: userRole, tenantId: finalTenantId });
