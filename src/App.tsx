@@ -366,14 +366,11 @@ const App: React.FC = () => {
           </form>
 
           {dbInfo && (
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    <Database className="w-3 h-3" /> Veritabanı Bağlantı Bilgisi
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="text-slate-500 dark:text-slate-400">Sunucu: <span className="text-slate-800 dark:text-slate-200 font-mono">{dbInfo.host}</span></div>
-                    <div className="text-slate-500 dark:text-slate-400">Veritabanı: <span className="text-slate-800 dark:text-slate-200 font-mono">{dbInfo.database}</span></div>
-                </div>
+            <div className="flex items-center justify-center gap-2 py-2">
+                <div className={`w-2 h-2 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${dbStatus === 'connected' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {dbStatus === 'connected' ? 'Bağlantı Aktif' : 'Bağlantı Yok'}
+                </span>
             </div>
           )}
           
@@ -517,7 +514,7 @@ const App: React.FC = () => {
                  dbStatus === 'connected' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
              }`}>
                 <div className={`w-2 h-2 rounded-full ${dbStatus === 'connected' ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
-                {dbStatus === 'connected' ? 'Güvenli Bağlantı Aktif' : 'Sunucu Hatası'}
+                {dbStatus === 'connected' ? 'Bağlantı Aktif' : 'Bağlantı Yok'}
              </div>
           </div>
         </div>
