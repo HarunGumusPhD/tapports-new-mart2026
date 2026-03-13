@@ -36,9 +36,17 @@ try {
         username VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         full_name VARCHAR(100),
+        role ENUM('super_admin', 'admin') DEFAULT 'admin',
         must_change_password TINYINT(1) DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
+
+    // YENİ: role kolonu yoksa ekle (Migration)
+    try {
+        $pdo->query("SELECT role FROM users LIMIT 1");
+    } catch (Exception $e) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN role ENUM('super_admin', 'admin') DEFAULT 'admin'");
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,9 +74,17 @@ try {
         commission_rate DECIMAL(5, 2) DEFAULT 0.07,
         images TEXT,
         description TEXT,
+        tenant_id INT DEFAULT 0,
         is_deleted TINYINT(1) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
+
+    // YENİ: tenant_id kolonu yoksa ekle (Migration)
+    try {
+        $pdo->query("SELECT tenant_id FROM orders LIMIT 1");
+    } catch (Exception $e) {
+        $pdo->exec("ALTER TABLE orders ADD COLUMN tenant_id INT DEFAULT 0");
+    }
 
     // YENİ: images kolonu yoksa ekle (Migration)
     try {
@@ -91,12 +107,16 @@ try {
         $pdo->exec("ALTER TABLE orders ADD COLUMN description TEXT");
     }
 
-    // Admin kullanıcısı yoksa ekle
-    $checkUser = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    $checkUser->execute();
-    if ($checkUser->fetchColumn() == 0) {
-        $pdo->prepare("INSERT INTO users (username, password, full_name, must_change_password) VALUES ('admin', '$2y$10$8.07nB9T2/l4C.1S5B7El.eE4m8G2h1W3p5Q6r7S8t9U0v1W2x3y4', 'Sistem Yöneticisi', 1)")->execute();
+    // Super Admin kullanıcısı yoksa ekle
+    $checkSuperAdmin = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = 'silverciva@gmail.com'");
+    $checkSuperAdmin->execute();
+    if ($checkSuperAdmin->fetchColumn() == 0) {
+        $passwordHash = password_hash('qazXSW12!', PASSWORD_DEFAULT);
+        $pdo->prepare("INSERT INTO users (username, password, full_name, role, must_change_password) VALUES ('silverciva@gmail.com', ?, 'Süper Admin', 'super_admin', 1)")->execute([$passwordHash]);
     }
+
+    // Eski admin kullanıcısını güncelle (varsa)
+    $pdo->prepare("UPDATE users SET role = 'admin' WHERE username = 'admin' AND role IS NULL")->execute();
 
 } catch (PDOException $e) {
     http_response_code(500);
@@ -207,6 +227,7 @@ switch ($action) {
             
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
             
             echo json_encode([
                 'success' => true,
@@ -214,6 +235,7 @@ switch ($action) {
                     'id' => $user['id'],
                     'username' => $user['username'],
                     'fullName' => $user['full_name'],
+                    'role' => $user['role'],
                     'mustChangePassword' => (bool)$user['must_change_password']
                 ]
             ]);
@@ -225,7 +247,8 @@ switch ($action) {
         break;
 
     case 'getOrders':
-        $stmt = $pdo->query("SELECT * FROM orders ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE tenant_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$_SESSION['user_id']]);
         $dbOrders = $stmt->fetchAll();
         
         $mapped = array_map(function($row) {
@@ -259,14 +282,14 @@ switch ($action) {
         // images dizisini JSON olarak sakla
         $imagesJson = isset($input['images']) ? json_encode($input['images']) : '[]';
 
-        $sql = "INSERT INTO orders (id, date, estimated_delivery_date, process_status, customer_name, supplier, product_model, quantity, invoice_no, buy_price, logistics_cost, local_shipping, deposit, status, profit_margin, commission_rate, images, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO orders (id, date, estimated_delivery_date, process_status, customer_name, supplier, product_model, quantity, invoice_no, buy_price, logistics_cost, local_shipping, deposit, status, profit_margin, commission_rate, images, description, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $pdo->prepare($sql)->execute([
             $input['id'], $input['date'], $input['estimatedDeliveryDate'] ?? null,
             $input['processStatus'] ?? 'Siparişleşti', $input['customerName'], $input['supplier'], 
             $input['productModel'], $input['quantity'], $input['invoiceNo'], 
             $input['buyPrice'], $input['logisticsCost'], $input['localShipping'], 
             $input['deposit'], $input['status'], $input['profitMargin'], $input['commissionRate'],
-            $imagesJson, $input['description'] ?? ''
+            $imagesJson, $input['description'] ?? '', $_SESSION['user_id']
         ]);
         echo json_encode(['success' => true]);
         break;
@@ -274,37 +297,73 @@ switch ($action) {
     case 'updateOrder':
         $imagesJson = isset($input['images']) ? json_encode($input['images']) : '[]';
         
-        $sql = "UPDATE orders SET date=?, estimated_delivery_date=?, process_status=?, customer_name=?, supplier=?, product_model=?, quantity=?, invoice_no=?, buy_price=?, logistics_cost=?, local_shipping=?, deposit=?, status=?, profit_margin=?, commission_rate=?, images=?, description=? WHERE id=?";
+        $sql = "UPDATE orders SET date=?, estimated_delivery_date=?, process_status=?, customer_name=?, supplier=?, product_model=?, quantity=?, invoice_no=?, buy_price=?, logistics_cost=?, local_shipping=?, deposit=?, status=?, profit_margin=?, commission_rate=?, images=?, description=? WHERE id=? AND tenant_id=?";
         $pdo->prepare($sql)->execute([
             $input['date'], $input['estimatedDeliveryDate'] ?? null, $input['processStatus'] ?? 'Siparişleşti',
             $input['customerName'], $input['supplier'], $input['productModel'], $input['quantity'], 
             $input['invoiceNo'], $input['buyPrice'], $input['logisticsCost'], $input['localShipping'], 
             $input['deposit'], $input['status'], $input['profitMargin'], $input['commissionRate'],
             $imagesJson, $input['description'] ?? '',
-            $id
+            $id, $_SESSION['user_id']
         ]);
         echo json_encode(['success' => true]);
         break;
 
     case 'deleteOrder':
-        $pdo->prepare("UPDATE orders SET is_deleted = 1 WHERE id = ?")->execute([$id]);
+        $pdo->prepare("UPDATE orders SET is_deleted = 1 WHERE id = ? AND tenant_id = ?")->execute([$id, $_SESSION['user_id']]);
         echo json_encode(['success' => true]);
         break;
     
     case 'restoreOrder':
-        $pdo->prepare("UPDATE orders SET is_deleted = 0 WHERE id = ?")->execute([$id]);
+        $pdo->prepare("UPDATE orders SET is_deleted = 0 WHERE id = ? AND tenant_id = ?")->execute([$id, $_SESSION['user_id']]);
         echo json_encode(['success' => true]);
         break;
 
     case 'hardDeleteOrder':
-        // Önce resimleri silmek iyi olurdu ama dosya sistemi erişimi karmaşık olabilir, şimdilik sadece DB kaydı siliniyor.
-        $pdo->prepare("DELETE FROM orders WHERE id = ?")->execute([$id]);
+        $pdo->prepare("DELETE FROM orders WHERE id = ? AND tenant_id = ?")->execute([$id, $_SESSION['user_id']]);
         echo json_encode(['success' => true]);
         break;
 
     case 'updateStatus':
-        $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?")->execute([$input['status'], $id]);
+        $pdo->prepare("UPDATE orders SET status = ? WHERE id = ? AND tenant_id = ?")->execute([$input['status'], $id, $_SESSION['user_id']]);
         echo json_encode(['success' => true]);
+        break;
+
+    case 'getUsers':
+        if ($_SESSION['role'] !== 'super_admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Forbidden']);
+            exit;
+        }
+        $stmt = $pdo->query("SELECT id, username, full_name, role, must_change_password, created_at FROM users WHERE role != 'super_admin' ORDER BY created_at DESC");
+        echo json_encode($stmt->fetchAll());
+        break;
+
+    case 'createUser':
+        if ($_SESSION['role'] !== 'super_admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Forbidden']);
+            exit;
+        }
+        $username = $input['username'] ?? '';
+        $password = $input['password'] ?? '';
+        $fullName = $input['fullName'] ?? '';
+        
+        if (empty($username) || empty($password)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Eksik bilgi.']);
+            exit;
+        }
+
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO users (username, password, full_name, role, must_change_password) VALUES (?, ?, ?, 'admin', 1)";
+        try {
+            $pdo->prepare($sql)->execute([$username, $hash, $fullName]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Bu kullanıcı adı zaten kullanımda.']);
+        }
         break;
 
     case 'updatePassword':
